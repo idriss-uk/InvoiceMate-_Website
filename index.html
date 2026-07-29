@@ -485,14 +485,66 @@
       <div class="footer-bottom">
         <p>&copy; 2026 InvoiceMate Global. All rights reserved.</p>
         <div class="footer-bottom-links">
-          <a href="#" id="privacy-policy-link">Privacy Policy</a>
-          <a href="#" id="terms-of-service-link">Terms of Service</a>
-          <a href="#" id="cookie-policy-link">Cookie Policy</a>
+          <a href="privacy.html" id="privacy-policy-link">Privacy Policy</a>
+          a href="terms.html" id="terms-of-service-link">Terms of Service</a>
+          <a href="cookie-policy.html" id="cookie-policy-link">Cookie Policy</a>
         </div>
       </div>
     </div>
   </footer>
+<!-- Cookie Consent -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.css">
+<script type="module">
+    import * as CookieConsent from 'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.0/dist/cookieconsent.esm.js';
 
+    CookieConsent.run({
+        guiOptions: {
+            consentModal: {
+                layout: 'box',
+                position: 'bottom right'
+            }
+        },
+        categories: {
+            necessary: {
+                readOnly: true,
+                enabled: true
+            },
+            analytics: {}
+        },
+        language: {
+            default: 'en',
+            translations: {
+                en: {
+                    consentModal: {
+                        title: 'We value your privacy',
+                        description: 'We use cookies to enhance your browsing experience and analyze site traffic.',
+                        acceptAllBtn: 'Accept all',
+                        acceptNecessaryBtn: 'Reject non-essential',
+                        showPreferencesBtn: 'Manage preferences'
+                    },
+                    preferencesModal: {
+                        title: 'Cookie Preferences',
+                        acceptAllBtn: 'Accept all',
+                        acceptNecessaryBtn: 'Reject all',
+                        savePreferencesBtn: 'Save preferences',
+                        sections: [
+                            {
+                                title: 'Strictly Necessary Cookies',
+                                description: 'These cookies are essential for the proper functioning of the website.',
+                                category: 'necessary'
+                            },
+                            {
+                                title: 'Analytics Cookies',
+                                description: 'These cookies help us understand how visitors interact with the website.',
+                                category: 'analytics'
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    });
+</script>
   <script src="script.js"></script>
 </body>
 </html>
