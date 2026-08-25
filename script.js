@@ -171,5 +171,21 @@ document.addEventListener('DOMContentLoaded', () => {
     { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' }
   );
   sections.forEach(s => sectionObserver.observe(s));
-
+// ---- Smooth Scroll for Internal Hash Links Only ----
+  const internalNavLinks = document.querySelectorAll('a[href^="#"]');
+  internalNavLinks.forEach(link => {
+    link.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId && targetId !== '#') {
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          e.preventDefault();
+          targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+    });
+  });
 });
