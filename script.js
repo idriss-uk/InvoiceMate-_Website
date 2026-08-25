@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Close nav on link click (mobile)
+  navLinks.querySelectorAll('a[href^="#"]').forEach(link => {
   navLinks.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
       navLinks.classList.remove('active');
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- Active Nav Highlight ----
   const sections = document.querySelectorAll('section[id]');
-  const navAnchors = document.querySelectorAll('.nav-links a:not(.nav-cta)');
+  const navAnchors = document.querySelectorAll('.nav-links a[href^="#"]');
 
   const sectionObserver = new IntersectionObserver(
     (entries) => {
