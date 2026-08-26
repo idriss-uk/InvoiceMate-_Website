@@ -3,831 +3,715 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Free Invoice Generator – Invoicer</title>
-  <meta name="description" content="Free professional UK invoice generator. Print or save as PDF. Also on Android – InvoiceMate Global." />
+  <title>InvoiceMate Global — Free Online Invoice Generator</title>
+  <meta name="description" content="Generate and download professional invoices online for free. Also available on Android — InvoiceMate Global." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body, #root { height: 100%; margin: 0; padding: 0; }
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f8fafc; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     @media print {
+      body * { visibility: hidden !important; }
+      #printable-invoice, #printable-invoice * { visibility: visible !important; }
+      #printable-invoice {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        box-shadow: none !important;
+        background: white !important;
+      }
       .no-print { display: none !important; }
-      #invoice-preview-print { display: block !important; }
     }
   </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
   <div id="root"></div>
 
-<script type="text/babel">
-const { useState, useMemo, useRef } = React;
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-// ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const PLAY_URL = "https://play.google.com/store/apps/details?id=com.invoicemateglobal";
+    const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.invoicemateglobal";
 
-// ─── ICONS ───────────────────────────────────────────────────────────────────
-const Icon = ({ d, size = 16, stroke = "currentColor", fill = "none", sw = 1.75 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-const IC = {
-  dashboard: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10",
-  plus:      "M12 5v14M5 12h14",
-  settings:  "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z",
-  trash:     "M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2",
-  print:     "M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z",
-  mail:      "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6",
-  whatsapp:  "M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z",
-  check:     "M20 6L9 17l-5-5",
-  eye:       "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
-  edit:      "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z",
-  file:      "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8",
-  upload:    "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
-  x:         "M18 6L6 18M6 6l12 12",
-  chevron:   "M6 9l6 6 6-6",
-  back:      "M19 12H5M12 19l-7-7 7-7",
-};
+    function App() {
+      const [view, setView] = useState("list"); // 'list', 'create', 'preview', 'settings'
+      const [showBanner, setShowBanner] = useState(true);
+      const [invoices, setInvoices] = useState(() => {
+        const saved = localStorage.getItem("invoicemate_web_invoices");
+        return saved ? JSON.parse(saved) : [];
+      });
+      const [currentInvoice, setCurrentInvoice] = useState(null);
+      const [business, setBusiness] = useState(() => {
+        const saved = localStorage.getItem("invoicemate_web_business");
+        return saved ? JSON.parse(saved) : {
+          name: "InvoiceMate Global",
+          address: "123 High Street\nLondon\nSW1A 1AA",
+          email: "support@invoicemateglobal.com",
+          phone: "+44 20 1234 5678",
+          vatNo: "GB12345",
+          companyNo: "12345678",
+          bankName: "Lloyds",
+          sortCode: "20-40-50",
+          accountNo: "12345678",
+          logo: ""
+        };
+      });
 
-// ─── GOOGLE PLAY BADGE ───────────────────────────────────────────────────────
-const GooglePlayBadge = ({ width = 140 }) => (
-  <a href={PLAY_URL} target="_blank" rel="noopener noreferrer"
-    style={{ display: "inline-block", lineHeight: 0, borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
-    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={Math.round(width * 0.298)} viewBox="0 0 646 192">
-      <rect width="646" height="192" rx="20" fill="#000"/>
-      <rect x="1.5" y="1.5" width="643" height="189" rx="18.5" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="3"/>
-      <g transform="translate(36,46)">
-        <defs>
-          <linearGradient id="g1" x1="8" y1="52" x2="86" y2="52" gradientUnits="userSpaceOnUse"><stop stopColor="#00C3FF"/><stop offset="1" stopColor="#1DE9B6"/></linearGradient>
-          <linearGradient id="g2" x1="8" y1="5" x2="54" y2="52" gradientUnits="userSpaceOnUse"><stop stopColor="#EA4335"/><stop offset="1" stopColor="#FBBC04"/></linearGradient>
-          <linearGradient id="g3" x1="8" y1="5" x2="86" y2="52" gradientUnits="userSpaceOnUse"><stop stopColor="#FBBC04"/><stop offset="1" stopColor="#FBBC04" stopOpacity="0"/></linearGradient>
-          <linearGradient id="g4" x1="8" y1="99" x2="86" y2="52" gradientUnits="userSpaceOnUse"><stop stopColor="#34A853"/><stop offset="1" stopColor="#1DE9B6" stopOpacity="0"/></linearGradient>
-        </defs>
-        <path d="M8 5L86 52 8 99V5z" fill="url(#g1)"/>
-        <path d="M8 5l46 47L8 99" fill="url(#g2)"/>
-        <path d="M54 52L86 52 8 5" fill="url(#g3)"/>
-        <path d="M8 99l46-47 32 19" fill="url(#g4)"/>
-      </g>
-      <text x="148" y="74" fontFamily="Arial,sans-serif" fontSize="24" fill="#fff" opacity=".75" letterSpacing="2">GET IT ON</text>
-      <text x="148" y="140" fontFamily="Arial,sans-serif" fontSize="54" fontWeight="bold" fill="#fff" letterSpacing="-1">Google Play</text>
-    </svg>
-  </a>
-);
+      useEffect(() => {
+        localStorage.setItem("invoicemate_web_invoices", JSON.stringify(invoices));
+      }, [invoices]);
 
-// ─── PROMO BANNER ─────────────────────────────────────────────────────────────
-const PromoBanner = ({ onDismiss }) => (
-  <a href={PLAY_URL} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>
-    <div style={{ background: "linear-gradient(90deg,#312e81,#4f46e5 50%,#7c3aed)", padding: "9px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 14, position: "relative", cursor: "pointer" }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="3" width="18" height="18" rx="3" fill="#4f46e5"/>
-          <path d="M7 9h10M7 12h7M7 15h5" stroke="#fff" strokeWidth="1.75" strokeLinecap="round"/>
-        </svg>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ color: "#c7d2fe", fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>📱 Also available on Android</span>
-        <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>InvoiceMate Global — Invoice &amp; Receipt Manager</span>
-      </div>
-      <div style={{ marginLeft: 6, flexShrink: 0 }}>
-        <GooglePlayBadge width={118} />
-      </div>
-      <button onClick={e => { e.preventDefault(); e.stopPropagation(); onDismiss(); }}
-        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.18)", border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", padding: "4px 9px", fontSize: 12, fontWeight: 700, lineHeight: 1 }}>✕</button>
-    </div>
-  </a>
-);
+      useEffect(() => {
+        localStorage.setItem("invoicemate_web_business", JSON.stringify(business));
+      }, [business]);
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-const uid    = () => Math.random().toString(36).slice(2, 9);
-const today  = () => new Date().toISOString().split("T")[0];
-const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().split("T")[0]; };
-const fmt    = (n, sym = "£") => `${sym}${Number(n).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = s => { if (!s) return "—"; try { return new Date(s).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }); } catch { return s; } };
+      const createNewInvoiceState = () => ({
+        id: "INV-" + String(invoices.length + 1).padStart(4, "0"),
+        status: "PAID",
+        clientName: "",
+        clientEmail: "",
+        clientPhone: "",
+        clientAddress: "",
+        issueDate: new Date().toISOString().split("T")[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        items: [{ description: "", qty: 1, unitPrice: 0, vatPercent: 20, discount: 0 }],
+        notes: "Payment cash / bank transfer"
+      });
 
-const calcLine = item => {
-  const gross = item.qty * item.price;
-  const disc  = (gross * (item.discount || 0)) / 100;
-  const net   = gross - disc;
-  const vat   = (net * (item.vatRate || 0)) / 100;
-  return { net: +net.toFixed(2), disc: +disc.toFixed(2), vat: +vat.toFixed(2), total: +(net + vat).toFixed(2) };
-};
+      const handleSaveInvoice = (inv) => {
+        const idx = invoices.findIndex((i) => i.id === inv.id);
+        if (idx >= 0) {
+          const updated = [...invoices];
+          updated[idx] = inv;
+          setInvoices(updated);
+        } else {
+          setInvoices([inv, ...invoices]);
+        }
+        setCurrentInvoice(inv);
+        setView("preview");
+      };
 
-const calcTotals = items => {
-  let sub = 0, disc = 0, vat = 0;
-  items.forEach(it => { const r = calcLine(it); sub += r.net; disc += r.disc; vat += r.vat; });
-  return { subtotal: +sub.toFixed(2), totalDisc: +disc.toFixed(2), totalVat: +vat.toFixed(2), total: +(sub + vat).toFixed(2) };
-};
+      const handleDeleteInvoice = (id) => {
+        setInvoices(invoices.filter((i) => i.id !== id));
+        setView("list");
+      };
 
-const nextNum = (invoices, prefix) => {
-  const nums = invoices.map(i => parseInt(i.number.replace(/\D/g, ""), 10) || 0);
-  return `${prefix}-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;
-};
+      const calculateTotals = (inv) => {
+        let subtotal = 0;
+        let totalVat = 0;
+        (inv.items || []).forEach((item) => {
+          const raw = (Number(item.qty) || 0) * (Number(item.unitPrice) || 0);
+          const disc = (raw * (Number(item.discount) || 0)) / 100;
+          const net = raw - disc;
+          const vat = (net * (Number(item.vatPercent) || 0)) / 100;
+          subtotal += net;
+          totalVat += vat;
+        });
+        return { subtotal, totalVat, total: subtotal + totalVat };
+      };
 
-// ─── IN-MEMORY STORE ─────────────────────────────────────────────────────────
-const STORE = (() => {
-  let inv = [];
-  let biz = { name: "Your Business Ltd", address: "123 High Street\nLondon\nSW1A 1AA", email: "hello@yourbusiness.co.uk", phone: "+44 20 1234 5678", website: "", vatNumber: "", regNumber: "", bankName: "", sortCode: "", accountNumber: "", logo: "", prefix: "INV", defaultVat: 20, currency: "GBP", sym: "£" };
-  return {
-    getInv: ()  => inv,
-    getBiz: ()  => biz,
-    saveBiz: b  => { biz = { ...b }; },
-    saveInv: i  => { const idx = inv.findIndex(x => x.id === i.id); idx >= 0 ? (inv[idx] = i) : inv.unshift(i); },
-    delInv:  id => { inv = inv.filter(i => i.id !== id); },
-    toggle:  id => { inv = inv.map(i => i.id === id ? { ...i, status: i.status === "paid" ? "unpaid" : "paid" } : i); },
-  };
-})();
-
-// ─── SHARED UI COMPONENTS ────────────────────────────────────────────────────
-const S = {
-  primary:   { background: "#0f172a", color: "#fff", border: "none" },
-  secondary: { background: "#fff", color: "#475569", border: "1px solid #e2e8f0" },
-  ghost:     { background: "transparent", color: "#64748b", border: "none" },
-  danger:    { background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" },
-  success:   { background: "#16a34a", color: "#fff", border: "none" },
-};
-const SZ = { sm: { padding: "6px 12px", fontSize: 12 }, md: { padding: "9px 16px", fontSize: 13 }, lg: { padding: "12px 20px", fontSize: 14 } };
-
-const Btn = ({ children, onClick, variant = "primary", size = "md", disabled }) => (
-  <button onClick={onClick} disabled={disabled}
-    style={{ ...S[variant], ...SZ[size], display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, fontWeight: 600, borderRadius: 10, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, transition: "opacity .15s", fontFamily: "inherit" }}>
-    {children}
-  </button>
-);
-
-const inputStyle = { padding: "8px 12px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 13, color: "#0f172a", outline: "none", fontFamily: "inherit", width: "100%", boxSizing: "border-box", display: "block" };
-const labelStyle = { display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 };
-
-const Field = ({ label, children, style = {} }) => (
-  <div style={style}>
-    {label && <label style={labelStyle}>{label}</label>}
-    {children}
-  </div>
-);
-
-const TInput = ({ label, value, onChange, type = "text", placeholder = "", style = {} }) => (
-  <Field label={label} style={style}>
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={inputStyle} />
-  </Field>
-);
-
-const TTextarea = ({ label, value, onChange, rows = 3, placeholder = "", style = {} }) => (
-  <Field label={label} style={style}>
-    <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder} style={{ ...inputStyle, resize: "vertical" }} />
-  </Field>
-);
-
-const TSelect = ({ label, value, onChange, options, style = {} }) => (
-  <Field label={label} style={style}>
-    <div style={{ position: "relative" }}>
-      <select value={value} onChange={e => onChange(e.target.value)} style={{ ...inputStyle, appearance: "none", paddingRight: 28, cursor: "pointer" }}>
-        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-      <span style={{ position: "absolute", right: 9, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
-        <Icon d={IC.chevron} size={13} />
-      </span>
-    </div>
-  </Field>
-);
-
-const Card = ({ children, style = {} }) => (
-  <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 20, ...style }}>{children}</div>
-);
-
-const SecTitle = ({ children }) => (
-  <p style={{ margin: "0 0 14px", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>{children}</p>
-);
-
-const Badge = ({ status, onClick }) => (
-  <span onClick={onClick} style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", cursor: onClick ? "pointer" : "default", background: status === "paid" ? "#dcfce7" : "#fef9c3", color: status === "paid" ? "#16a34a" : "#a16207" }}>
-    {status}
-  </span>
-);
-
-// ─── INVOICE PREVIEW ─────────────────────────────────────────────────────────
-const InvoicePreview = ({ invoice, business }) => {
-  const sym    = business.sym || "£";
-  const totals = calcTotals(invoice.items);
-  const isPaid = invoice.status === "paid";
-  return (
-    <div id="invoice-preview-print" style={{ background: "#fff", fontFamily: "Inter,system-ui,sans-serif" }}>
-      {/* Dark header */}
-      <div style={{ background: "#0f172a", padding: "28px 36px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          {business.logo && <img src={business.logo} alt="" style={{ height: 48, maxWidth: 120, objectFit: "contain", marginBottom: 10, borderRadius: 6 }} />}
-          <div style={{ color: "#fff", fontWeight: 700, fontSize: 17 }}>{business.name || "Your Business"}</div>
-          <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 4, whiteSpace: "pre-line" }}>{business.address}</div>
-          {business.email      && <div style={{ color: "#94a3b8", fontSize: 11 }}>{business.email}</div>}
-          {business.phone      && <div style={{ color: "#94a3b8", fontSize: 11 }}>{business.phone}</div>}
-          {business.vatNumber  && <div style={{ color: "#64748b", fontSize: 11 }}>VAT: {business.vatNumber}</div>}
-          {business.regNumber  && <div style={{ color: "#64748b", fontSize: 11 }}>Co. No: {business.regNumber}</div>}
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ color: "#fff", fontWeight: 800, fontSize: 32, letterSpacing: "-0.02em" }}>INVOICE</div>
-          <div style={{ color: "#64748b", fontFamily: "monospace", fontSize: 13 }}>{invoice.number}</div>
-          <div style={{ marginTop: 10, display: "inline-block", padding: "3px 14px", borderRadius: 999, background: isPaid ? "#166534" : "#78350f", color: isPaid ? "#86efac" : "#fde68a", fontSize: 11, fontWeight: 700, textTransform: "uppercase" }}>
-            {invoice.status}
-          </div>
-        </div>
-      </div>
-
-      {/* Meta grid */}
-      <div style={{ padding: "22px 36px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 18, borderBottom: "1px solid #f1f5f9" }}>
-        {[{ label: "Bill To", value: invoice.customer.name || "—", bold: true }, { label: "Email", value: invoice.customer.email || "—" }, { label: "Issue Date", value: fmtDate(invoice.issueDate) }, { label: "Due Date", value: fmtDate(invoice.dueDate) }].map(({ label, value, bold }) => (
-          <div key={label}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>{label}</div>
-            <div style={{ fontSize: 13, fontWeight: bold ? 700 : 500, color: "#0f172a" }}>{value}</div>
-          </div>
-        ))}
-      </div>
-      {invoice.customer.address && (
-        <div style={{ padding: "0 36px 14px" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Address</div>
-          <div style={{ fontSize: 12, color: "#475569", whiteSpace: "pre-line" }}>{invoice.customer.address}</div>
-        </div>
-      )}
-
-      {/* Items table */}
-      <div style={{ padding: "0 36px" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-          <thead>
-            <tr style={{ background: "#f8fafc" }}>
-              {["Description","Qty","Unit Price","Disc.","VAT","Net","VAT Amt","Total"].map((h, i) => (
-                <th key={h} style={{ padding: "9px 10px", textAlign: i === 0 ? "left" : "right", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #e2e8f0" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((item, idx) => {
-              const { net, vat, total } = calcLine(item);
-              return (
-                <tr key={item.id} style={{ background: idx % 2 === 0 ? "#fff" : "#f8fafc" }}>
-                  <td style={{ padding: "8px 10px", fontWeight: 500, color: "#0f172a" }}>{item.desc || "—"}</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", color: "#475569" }}>{item.qty}</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", color: "#475569" }}>{fmt(item.price, sym)}</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", color: "#475569" }}>{item.discount ? `${item.discount}%` : "—"}</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", color: "#475569" }}>{item.vatRate}%</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", color: "#475569" }}>{fmt(net, sym)}</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", color: "#475569" }}>{fmt(vat, sym)}</td>
-                  <td style={{ padding: "8px 10px", textAlign: "right", fontWeight: 700, color: "#0f172a" }}>{fmt(total, sym)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Totals */}
-      <div style={{ padding: "20px 36px", display: "flex", justifyContent: "flex-end" }}>
-        <div style={{ width: 280 }}>
-          {[["Subtotal (excl. VAT)", fmt(totals.subtotal, sym)], ...(totals.totalDisc > 0 ? [["Discount", `-${fmt(totals.totalDisc, sym)}`]] : []), ["VAT", fmt(totals.totalVat, sym)]].map(([l, v]) => (
-            <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 12, color: "#475569" }}><span>{l}</span><span>{v}</span></div>
-          ))}
-          <div style={{ height: 1, background: "#e2e8f0", margin: "8px 0" }} />
-          <div style={{ background: "#0f172a", borderRadius: 10, padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Total Due</span>
-            <span style={{ color: "#fff", fontWeight: 800, fontSize: 18, fontFamily: "monospace" }}>{fmt(totals.total, sym)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Bank details */}
-      {(business.bankName || business.sortCode || business.accountNumber) && (
-        <div style={{ padding: "0 36px 16px" }}>
-          <div style={{ background: "#f8fafc", borderRadius: 10, padding: "14px 18px" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Payment Details</div>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              {[["Bank", business.bankName], ["Sort Code", business.sortCode], ["Account No.", business.accountNumber]].filter(([,v]) => v).map(([l, v]) => (
-                <div key={l}>
-                  <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 1 }}>{l}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", fontFamily: "monospace" }}>{v}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notes */}
-      {invoice.notes && (
-        <div style={{ padding: "0 36px 16px" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Notes</div>
-          <div style={{ fontSize: 12, color: "#64748b", whiteSpace: "pre-line" }}>{invoice.notes}</div>
-        </div>
-      )}
-
-      <div style={{ padding: "14px 36px", borderTop: "1px solid #f1f5f9", textAlign: "center", fontSize: 10, color: "#94a3b8" }}>
-        Thank you for your business · Generated {fmtDate(new Date().toISOString())}
-      </div>
-    </div>
-  );
-};
-
-// ─── DASHBOARD ───────────────────────────────────────────────────────────────
-const Dashboard = ({ invoices, business, onView, onNew, onToggle, onDelete }) => {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const sym = business.sym || "£";
-
-  const stats = useMemo(() => {
-    let total = 0, paid = 0, unpaid = 0;
-    invoices.forEach(inv => { const t = calcTotals(inv.items).total; total += t; if (inv.status === "paid") paid += t; else unpaid += t; });
-    return { total, paid, unpaid, count: invoices.length };
-  }, [invoices]);
-
-  const filtered = useMemo(() => invoices.filter(inv =>
-    (filter === "all" || inv.status === filter) &&
-    (inv.number.toLowerCase().includes(search.toLowerCase()) || inv.customer.name.toLowerCase().includes(search.toLowerCase()))
-  ), [invoices, filter, search]);
-
-  return (
-    <div style={{ padding: "24px 0" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>Invoices</h1>
-          <p style={{ margin: "3px 0 0", color: "#64748b", fontSize: 13 }}>{stats.count} total · {invoices.filter(i => i.status === "unpaid").length} outstanding</p>
-        </div>
-        <Btn onClick={onNew}><Icon d={IC.plus} size={14} /> New Invoice</Btn>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 20 }}>
-        {[{ l: "Invoices", v: stats.count, c: "#0f172a", mono: true }, { l: "Total Value", v: fmt(stats.total, sym), c: "#0f172a" }, { l: "Paid", v: fmt(stats.paid, sym), c: "#16a34a" }, { l: "Outstanding", v: fmt(stats.unpaid, sym), c: "#d97706" }].map(({ l, v, c, mono }) => (
-          <Card key={l} style={{ padding: "14px 16px" }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>{l}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: c, fontFamily: mono ? "monospace" : "inherit" }}>{v}</div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Search + filter */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search invoices or customers…"
-            style={{ ...inputStyle, paddingLeft: 34 }} />
-          <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          </span>
-        </div>
-        {["all","unpaid","paid"].map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid", fontSize: 13, fontWeight: 600, cursor: "pointer", textTransform: "capitalize", background: filter === f ? "#0f172a" : "#fff", color: filter === f ? "#fff" : "#475569", borderColor: filter === f ? "#0f172a" : "#e2e8f0", fontFamily: "inherit" }}>
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
-      {filtered.length === 0 ? (
-        <Card style={{ textAlign: "center", padding: "52px 24px" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-          <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>No invoices yet</div>
-          <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 16 }}>{invoices.length === 0 ? "Create your first invoice to get started." : "Try a different search or filter."}</div>
-          {invoices.length === 0 && <Btn onClick={onNew} size="sm"><Icon d={IC.plus} size={13} /> Create Invoice</Btn>}
-        </Card>
-      ) : (
-        <Card style={{ padding: 0, overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ background: "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
-                {["Invoice #","Customer","Issue Date","Due Date","Amount","Status",""].map(h => (
-                  <th key={h} style={{ padding: "10px 14px", textAlign: h === "Amount" ? "right" : "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((inv, i) => {
-                const total = calcTotals(inv.items).total;
-                return (
-                  <tr key={inv.id} style={{ borderBottom: i < filtered.length - 1 ? "1px solid #f8fafc" : "none" }}>
-                    <td style={{ padding: "10px 14px" }}>
-                      <button onClick={() => onView(inv)} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontWeight: 700, fontSize: 13, color: "#0f172a", padding: 0 }}>{inv.number}</button>
-                    </td>
-                    <td style={{ padding: "10px 14px", color: "#475569" }}>{inv.customer.name || "—"}</td>
-                    <td style={{ padding: "10px 14px", color: "#94a3b8" }}>{fmtDate(inv.issueDate)}</td>
-                    <td style={{ padding: "10px 14px", color: "#94a3b8" }}>{fmtDate(inv.dueDate)}</td>
-                    <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: "#0f172a", fontFamily: "monospace" }}>{fmt(total, sym)}</td>
-                    <td style={{ padding: "10px 14px" }}><Badge status={inv.status} onClick={() => onToggle(inv.id)} /></td>
-                    <td style={{ padding: "10px 14px" }}>
-                      <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
-                        <Btn size="sm" variant="ghost" onClick={() => onView(inv)}><Icon d={IC.eye} size={13} /> View</Btn>
-                        <Btn size="sm" variant="danger" onClick={() => { if (confirm("Delete this invoice?")) onDelete(inv.id); }}><Icon d={IC.trash} size={12} /></Btn>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Card>
-      )}
-    </div>
-  );
-};
-
-// ─── INVOICE FORM ─────────────────────────────────────────────────────────────
-const emptyItem = vat => ({ id: uid(), desc: "", qty: 1, price: 0, vatRate: vat, discount: 0 });
-
-const InvoiceForm = ({ existing, business, invoices, onSave, onCancel }) => {
-  const sym = business.sym || "£";
-  const [number,    setNumber]    = useState(existing?.number     || nextNum(invoices, business.prefix));
-  const [issueDate, setIssueDate] = useState(existing?.issueDate  || today());
-  const [dueDate,   setDueDate]   = useState(existing?.dueDate    || addDays(30));
-  const [customer,  setCustomer]  = useState(existing?.customer   || { name: "", email: "", phone: "", address: "" });
-  const [items,     setItems]     = useState(existing?.items      || [emptyItem(business.defaultVat)]);
-  const [notes,     setNotes]     = useState(existing?.notes      || "");
-  const [tab,       setTab]       = useState("edit");
-
-  const setCust  = (k, v)  => setCustomer(c => ({ ...c, [k]: v }));
-  const updItem  = (id, k, v) => setItems(prev => prev.map(it => it.id === id ? { ...it, [k]: v } : it));
-  const addItem  = ()      => setItems(prev => [...prev, emptyItem(business.defaultVat)]);
-  const remItem  = id      => setItems(prev => prev.filter(it => it.id !== id));
-
-  const totals = calcTotals(items);
-
-  const previewInvoice = useMemo(() => ({
-    id: existing?.id || uid(), number, issueDate, dueDate, customer, items, notes, status: existing?.status || "unpaid",
-  }), [number, issueDate, dueDate, customer, items, notes]);
-
-  const doSave = status => {
-    if (!customer.name.trim()) { alert("Please enter a customer name."); return; }
-    if (items.every(it => !it.desc.trim())) { alert("Add at least one item description."); return; }
-    onSave({ ...previewInvoice, status: status || existing?.status || "unpaid" });
-  };
-
-  const tabBtn = t => ({
-    padding: "8px 16px", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit",
-    background: tab === t ? "#fff" : "transparent",
-    color: tab === t ? "#0f172a" : "#94a3b8",
-    borderBottom: tab === t ? "2px solid #0f172a" : "2px solid transparent",
-    transition: "all .15s",
-  });
-
-  const VAT_OPTS = [{ value: 0, label: "0%" }, { value: 5, label: "5%" }, { value: 20, label: "20%" }];
-
-  return (
-    <div style={{ padding: "24px 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <Btn variant="ghost" size="sm" onClick={onCancel}><Icon d={IC.back} size={14} /> Back</Btn>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#0f172a" }}>{existing ? "Edit Invoice" : "New Invoice"}</h1>
-        <span style={{ fontFamily: "monospace", fontSize: 13, color: "#64748b", background: "#f1f5f9", padding: "3px 10px", borderRadius: 8 }}>{number}</span>
-      </div>
-
-      <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: 20 }}>
-        <button style={tabBtn("edit")}  onClick={() => setTab("edit")}>✏️ Edit</button>
-        <button style={tabBtn("preview")} onClick={() => setTab("preview")}>👁 Preview</button>
-      </div>
-
-      {tab === "preview" ? (
-        <div>
-          <div style={{ border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
-            <InvoicePreview invoice={previewInvoice} business={business} />
-          </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <Btn variant="secondary" onClick={() => setTab("edit")}><Icon d={IC.edit} size={14} /> Edit</Btn>
-            <Btn variant="success"   onClick={() => doSave("paid")}><Icon d={IC.check} size={14} /> Save as Paid</Btn>
-            <Btn                     onClick={() => doSave("unpaid")}><Icon d={IC.file} size={14} /> Save Invoice</Btn>
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 20 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-            {/* Invoice meta */}
-            <Card>
-              <SecTitle>Invoice Details</SecTitle>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                <TInput label="Invoice Number" value={number}    onChange={setNumber} />
-                <TInput label="Issue Date"     value={issueDate} onChange={setIssueDate} type="date" />
-                <TInput label="Due Date"       value={dueDate}   onChange={setDueDate}   type="date" />
+      return (
+        <div class="flex flex-col min-h-screen">
+          {/* Top Promotional Banner */}
+          {showBanner && (
+            <div class="no-print bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 text-white px-4 py-2.5 flex items-center justify-between shadow-md text-sm">
+              <div class="flex items-center gap-3">
+                <div class="bg-white text-indigo-700 p-1 rounded font-black text-xs">IM</div>
+                <span><strong>InvoiceMate Global</strong> — Manage client invoices, expenses, and PDF receipts on the go.</span>
               </div>
-            </Card>
-
-            {/* Customer */}
-            <Card>
-              <SecTitle>Bill To</SecTitle>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <TInput    label="Customer / Company Name *" value={customer.name}    onChange={v => setCust("name", v)}    placeholder="Acme Ltd" />
-                <TInput    label="Email"                     value={customer.email}   onChange={v => setCust("email", v)}   type="email" placeholder="billing@acme.co.uk" />
-                <TInput    label="Phone"                     value={customer.phone}   onChange={v => setCust("phone", v)}   placeholder="+44 7700 900000" />
-                <TTextarea label="Address"                   value={customer.address} onChange={v => setCust("address", v)} rows={3} placeholder={"1 High St\nLondon\nW1A 1AA"} />
+              <div class="flex items-center gap-3">
+                <a
+                  href={PLAY_STORE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="bg-white text-indigo-900 hover:bg-slate-100 font-bold px-3 py-1 rounded text-xs transition shadow"
+                >
+                  Get on Google Play ➔
+                </a>
+                <button onClick={() => setShowBanner(false)} class="text-white/75 hover:text-white font-bold ml-2">✕</button>
               </div>
-            </Card>
-
-            {/* Line items */}
-            <Card>
-              <SecTitle>Line Items</SecTitle>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {items.map(item => {
-                  const { total } = calcLine(item);
-                  return (
-                    <div key={item.id} style={{ background: "#f8fafc", borderRadius: 12, padding: "12px 14px", border: "1px solid #f1f5f9" }}>
-                      <div style={{ marginBottom: 10 }}>
-                        <TInput value={item.desc} onChange={v => updItem(item.id, "desc", v)} placeholder="Description of service or product" />
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 0.8fr 0.8fr auto", gap: 8, alignItems: "end" }}>
-                        <TInput  label="Qty"           type="number" value={item.qty}      onChange={v => updItem(item.id, "qty",      parseFloat(v) || 0)} />
-                        <TInput  label={`Price (${sym})`} type="number" value={item.price}  onChange={v => updItem(item.id, "price",    parseFloat(v) || 0)} />
-                        <TInput  label="Disc %"        type="number" value={item.discount} onChange={v => updItem(item.id, "discount", parseFloat(v) || 0)} />
-                        <TSelect label="VAT %"         value={item.vatRate} onChange={v => updItem(item.id, "vatRate", parseFloat(v))} options={VAT_OPTS} />
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase" }}>Total</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 13, color: "#0f172a", whiteSpace: "nowrap" }}>{fmt(total, sym)}</span>
-                            <button onClick={() => remItem(item.id)} disabled={items.length === 1}
-                              style={{ background: "none", border: "none", cursor: "pointer", color: "#f87171", padding: 2, opacity: items.length === 1 ? 0.3 : 1, display: "flex" }}>
-                              <Icon d={IC.trash} size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                <button onClick={addItem} style={{ padding: "10px", borderRadius: 12, border: "2px dashed #e2e8f0", background: "none", cursor: "pointer", color: "#94a3b8", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit" }}>
-                  <Icon d={IC.plus} size={14} /> Add Line Item
-                </button>
-              </div>
-            </Card>
-
-            {/* Notes */}
-            <Card>
-              <SecTitle>Notes / Payment Terms</SecTitle>
-              <TTextarea value={notes} onChange={setNotes} rows={3} placeholder="Payment due within 30 days. Bank transfers preferred." />
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <Card style={{ position: "sticky", top: 20 }}>
-              <SecTitle>Summary</SecTitle>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
-                {[["Subtotal", fmt(totals.subtotal, sym)], ...(totals.totalDisc > 0 ? [["Discount", `-${fmt(totals.totalDisc, sym)}`]] : []), ["VAT", fmt(totals.totalVat, sym)]].map(([l, v]) => (
-                  <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#64748b" }}><span>{l}</span><span>{v}</span></div>
-                ))}
-                <div style={{ height: 1, background: "#f1f5f9", margin: "4px 0" }} />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>Total</span>
-                  <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{fmt(totals.total, sym)}</span>
-                </div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <Btn onClick={() => doSave("unpaid")}><Icon d={IC.file} size={14} /> Save Invoice</Btn>
-                <Btn variant="success" onClick={() => doSave("paid")}><Icon d={IC.check} size={14} /> Save as Paid</Btn>
-                <Btn variant="ghost" size="sm" onClick={() => setTab("preview")}><Icon d={IC.eye} size={13} /> Preview</Btn>
-              </div>
-            </Card>
-            <Card style={{ fontSize: 12, color: "#64748b" }}>
-              <SecTitle>From</SecTitle>
-              <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: 3 }}>{business.name}</div>
-              <div style={{ whiteSpace: "pre-line" }}>{business.address}</div>
-              {business.vatNumber && <div style={{ marginTop: 4, color: "#94a3b8" }}>VAT: {business.vatNumber}</div>}
-            </Card>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ─── INVOICE DETAIL ───────────────────────────────────────────────────────────
-const InvoiceDetail = ({ invoice, business, onBack, onEdit, onDelete, onToggle }) => {
-  const handlePrint = () => {
-    const el = document.getElementById("invoice-preview-print");
-    if (!el) return;
-    const w = window.open("", "_blank");
-    w.document.write(`<!DOCTYPE html><html><head><title>${invoice.number}</title><style>*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif}table{border-collapse:collapse}</style></head><body>${el.outerHTML}</body></html>`);
-    w.document.close(); w.focus(); setTimeout(() => { w.print(); w.close(); }, 300);
-  };
-
-  return (
-    <div style={{ padding: "24px 0" }}>
-      {/* Toolbar — Print/Save as PDF · Edit · Delete */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-        <Btn variant="ghost" size="sm" onClick={onBack}><Icon d={IC.back} size={14} /> Dashboard</Btn>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {/* Print / Save as PDF — prominent primary style */}
-          <button onClick={handlePrint} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 10, border: "none", cursor: "pointer", background: "#0f172a", color: "#fff", fontWeight: 700, fontSize: 13, fontFamily: "inherit", boxShadow: "0 1px 4px rgba(0,0,0,.18)", transition: "background .15s" }}
-            onMouseEnter={e => e.currentTarget.style.background = "#1e3a5f"}
-            onMouseLeave={e => e.currentTarget.style.background = "#0f172a"}>
-            {/* PDF icon */}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
-              <line x1="9" y1="11" x2="15" y2="11"/>
-            </svg>
-            Print / Save as PDF
-          </button>
-          <Btn variant="secondary" size="sm" onClick={() => onEdit(invoice)}><Icon d={IC.edit} size={13} /> Edit</Btn>
-          <Btn variant="danger"    size="sm" onClick={() => { if (confirm("Delete this invoice?")) onDelete(invoice.id); }}><Icon d={IC.trash} size={13} /> Delete</Btn>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <Badge status={invoice.status} onClick={() => onToggle(invoice.id)} />
-        <span style={{ fontSize: 13, color: "#94a3b8" }}>Click badge to toggle paid / unpaid</span>
-      </div>
-
-      <div style={{ border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden" }}>
-        <InvoicePreview invoice={invoice} business={business} />
-      </div>
-    </div>
-  );
-};
-
-// ─── SETTINGS ─────────────────────────────────────────────────────────────────
-const Settings = ({ business: init, onSave }) => {
-  const [form, setForm]   = useState({ ...init });
-  const [saved, setSaved] = useState(false);
-  const logoRef = useRef();
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handleLogo = e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { alert("Logo must be under 2 MB."); return; }
-    const r = new FileReader();
-    r.onload = () => set("logo", r.result);
-    r.readAsDataURL(file);
-  };
-
-  const doSave = () => { onSave(form); setSaved(true); setTimeout(() => setSaved(false), 2500); };
-
-  const CUR = [{ value: "GBP", label: "£ GBP – British Pound" }, { value: "USD", label: "$ USD – US Dollar" }, { value: "EUR", label: "€ EUR – Euro" }, { value: "AED", label: "AED – UAE Dirham" }, { value: "CAD", label: "CA$ – Canadian Dollar" }];
-  const SYM = { GBP: "£", USD: "$", EUR: "€", AED: "د.إ", CAD: "CA$" };
-
-  return (
-    <div style={{ padding: "24px 0", maxWidth: 640 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>Settings</h1>
-          <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 13 }}>Your business details appear on every invoice</p>
-        </div>
-        <Btn onClick={doSave} variant={saved ? "success" : "primary"}>
-          {saved ? <><Icon d={IC.check} size={14} /> Saved!</> : "Save Settings"}
-        </Btn>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Logo */}
-        <Card>
-          <SecTitle>Business Logo</SecTitle>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {form.logo
-              ? <div style={{ position: "relative" }}>
-                  <img src={form.logo} alt="" style={{ height: 60, maxWidth: 140, objectFit: "contain", borderRadius: 10, border: "1px solid #e2e8f0", padding: 6 }} />
-                  <button onClick={() => set("logo", "")} style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", background: "#ef4444", border: "none", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon d={IC.x} size={10} />
-                  </button>
-                </div>
-              : <div style={{ width: 80, height: 60, border: "2px dashed #e2e8f0", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#cbd5e1" }}>
-                  <Icon d={IC.upload} size={22} />
-                </div>
-            }
-            <div>
-              <Btn variant="secondary" size="sm" onClick={() => logoRef.current.click()}><Icon d={IC.upload} size={13} /> {form.logo ? "Change" : "Upload Logo"}</Btn>
-              <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>PNG or JPG, max 2 MB</p>
-              <input ref={logoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogo} />
-            </div>
-          </div>
-        </Card>
-
-        {/* Business info */}
-        <Card>
-          <SecTitle>Business Details</SecTitle>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <TInput    label="Business Name"            value={form.name}           onChange={v => set("name", v)} />
-            <TInput    label="Email"     type="email"   value={form.email}          onChange={v => set("email", v)} />
-            <TInput    label="Phone"                    value={form.phone}          onChange={v => set("phone", v)} />
-            <TInput    label="Website"                  value={form.website || ""}  onChange={v => set("website", v)} placeholder="https://yourbusiness.co.uk" />
-            <TTextarea label="Business Address"         value={form.address}        onChange={v => set("address", v)} rows={3} style={{ gridColumn: "1 / -1" }} />
-            <TInput    label="VAT Number"               value={form.vatNumber || ""} onChange={v => set("vatNumber", v)} placeholder="GB123456789" />
-            <TInput    label="Company Registration No." value={form.regNumber || ""} onChange={v => set("regNumber", v)} placeholder="12345678" />
-          </div>
-        </Card>
-
-        {/* Bank */}
-        <Card>
-          <SecTitle>Bank Details</SecTitle>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <TInput label="Bank Name"      value={form.bankName      || ""} onChange={v => set("bankName", v)}      placeholder="Barclays" />
-            <TInput label="Sort Code"      value={form.sortCode      || ""} onChange={v => set("sortCode", v)}      placeholder="00-00-00" />
-            <TInput label="Account Number" value={form.accountNumber || ""} onChange={v => set("accountNumber", v)} placeholder="12345678" />
-          </div>
-        </Card>
-
-        {/* Invoice defaults */}
-        <Card>
-          <SecTitle>Invoice Defaults</SecTitle>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <TInput  label="Invoice Prefix"    value={form.prefix}     onChange={v => set("prefix", v.toUpperCase())} placeholder="INV" />
-            <TSelect label="Default VAT Rate"  value={form.defaultVat} onChange={v => set("defaultVat", parseFloat(v))} options={[{ value: 0, label: "0%" }, { value: 5, label: "5%" }, { value: 20, label: "20%" }]} />
-            <TSelect label="Currency"          value={form.currency}   onChange={v => setForm(f => ({ ...f, currency: v, sym: SYM[v] || v }))} options={CUR} />
-          </div>
-        </Card>
-
-        <Btn onClick={doSave} variant={saved ? "success" : "primary"}>
-          {saved ? <><Icon d={IC.check} size={15} /> Settings Saved!</> : "Save Settings"}
-        </Btn>
-      </div>
-    </div>
-  );
-};
-
-// ─── APP ROOT ─────────────────────────────────────────────────────────────────
-function App() {
-  const [screen,   setScreen]   = useState("dashboard");
-  const [biz,      setBiz]      = useState(STORE.getBiz());
-  const [invoices, setInvoices] = useState(STORE.getInv());
-  const [selected, setSelected] = useState(null);
-  const [editing,  setEditing]  = useState(null);
-  const [banner,   setBanner]   = useState(true);
-
-  const refresh = () => setInvoices([...STORE.getInv()]);
-
-  const handleSaveInv = inv => { STORE.saveInv(inv); refresh(); setSelected(inv); setScreen("view"); };
-  const handleSaveBiz = b   => { STORE.saveBiz(b);  setBiz({ ...b }); };
-  const handleView    = inv => { setSelected(inv);   setScreen("view"); };
-  const handleEdit    = inv => { setEditing(inv);    setScreen("form"); };
-  const handleNew     = ()  => { setEditing(null);   setScreen("form"); };
-  const handleBack    = ()  => { setScreen("dashboard"); setSelected(null); setEditing(null); };
-  const handleDelete  = id  => { STORE.delInv(id);  refresh(); setScreen("dashboard"); };
-  const handleToggle  = id  => {
-    STORE.toggle(id); refresh();
-    if (selected?.id === id) setSelected(s => s ? { ...s, status: s.status === "paid" ? "unpaid" : "paid" } : s);
-  };
-
-  const NAV = [
-    { id: "dashboard", label: "Invoices",    icon: IC.dashboard },
-    { id: "newBtn",    label: "New Invoice", icon: IC.plus      },
-    { id: "settings",  label: "Settings",    icon: IC.settings  },
-  ];
-
-  return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc", fontFamily: "Inter,system-ui,sans-serif" }}>
-
-      {/* Promo banner */}
-      {banner && <PromoBanner onDismiss={() => setBanner(false)} />}
-
-      {/* Body */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-
-        {/* Sidebar */}
-        <aside style={{ width: 204, background: "#0f172a", display: "flex", flexDirection: "column", padding: "18px 12px", gap: 4, flexShrink: 0 }}>
-          {/* Logo mark */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 10px 16px", marginBottom: 8, borderBottom: "1px solid #1e293b" }}>
-            <div style={{ width: 28, height: 28, background: "#3b82f6", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon d={IC.file} size={14} stroke="#fff" />
-            </div>
-            <span style={{ color: "#fff", fontWeight: 700, fontSize: 15, letterSpacing: "-0.01em" }}>Invoicer</span>
-          </div>
-
-          {NAV.map(({ id, label, icon }) => {
-            const active = screen === id || (id === "dashboard" && (screen === "view" || screen === "dashboard"));
-            const isNew  = id === "newBtn";
-            return (
-              <button key={id} onClick={() => isNew ? handleNew() : setScreen(id)}
-                style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 10, border: "none", cursor: "pointer", background: isNew ? "#3b82f6" : active ? "#1e293b" : "transparent", color: isNew ? "#fff" : active ? "#fff" : "#64748b", fontSize: 13, fontWeight: 500, textAlign: "left", width: "100%", fontFamily: "inherit" }}>
-                <Icon d={icon} size={15} stroke={isNew || active ? "#fff" : "#64748b"} />
-                {label}
-              </button>
-            );
-          })}
-
-          {/* Outstanding count */}
-          {invoices.length > 0 && (
-            <div style={{ marginTop: "auto", padding: "10px 12px", background: "#1e293b", borderRadius: 10 }}>
-              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Outstanding</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: "#fbbf24", fontFamily: "monospace" }}>{invoices.filter(i => i.status === "unpaid").length}</div>
-              <div style={{ fontSize: 11, color: "#475569" }}>invoice{invoices.filter(i => i.status === "unpaid").length !== 1 ? "s" : ""}</div>
             </div>
           )}
 
-          {/* Google Play Badge */}
-          <div style={{ marginTop: invoices.length > 0 ? 12 : "auto", padding: "12px 0 4px", borderTop: "1px solid #1e293b" }}>
-            <div style={{ fontSize: 10, color: "#475569", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 8, textAlign: "center" }}>Also on Android</div>
-            <GooglePlayBadge width={180} />
+          <div class="flex flex-1">
+            {/* Sidebar */}
+            <aside class="no-print w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-4 hidden md:flex border-r border-slate-800">
+              <div>
+                <div class="flex items-center gap-3 px-2 py-4 mb-4 border-b border-slate-800">
+                  <div class="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black">IM</div>
+                  <span class="text-lg font-bold text-white tracking-wide">Invoicer</span>
+                </div>
+
+                <nav class="space-y-1">
+                  <button
+                    onClick={() => setView("list")}
+                    class={`w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium transition ${
+                      view === "list" ? "bg-indigo-600 text-white" : "hover:bg-slate-800 text-slate-300"
+                    }`}
+                  >
+                    📁 Invoices ({invoices.length})
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCurrentInvoice(createNewInvoiceState());
+                      setView("create");
+                    }}
+                    class={`w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium transition ${
+                      view === "create" ? "bg-indigo-600 text-white" : "hover:bg-slate-800 text-slate-300"
+                    }`}
+                  >
+                    ➕ New Invoice
+                  </button>
+                  <button
+                    onClick={() => setView("settings")}
+                    class={`w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium transition ${
+                      view === "settings" ? "bg-indigo-600 text-white" : "hover:bg-slate-800 text-slate-300"
+                    }`}
+                  >
+                    ⚙️ Business Settings
+                  </button>
+                </nav>
+              </div>
+
+              {/* Sidebar Android Ad */}
+              <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/60 text-center">
+                <p class="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wider">Also on Android</p>
+                <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-90 transition">
+                  <img
+                    src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                    alt="Get it on Google Play"
+                    class="h-10 mx-auto"
+                  />
+                </a>
+              </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main class="flex-1 p-6 md:p-8 max-w-5xl mx-auto w-full">
+              {view === "list" && (
+                <div>
+                  <div class="flex justify-between items-center mb-6">
+                    <div>
+                      <h1 class="text-2xl font-black text-slate-900">Invoices</h1>
+                      <p class="text-sm text-slate-500">{invoices.length} total generated</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setCurrentInvoice(createNewInvoiceState());
+                        setView("create");
+                      }}
+                      class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow transition flex items-center gap-2 text-sm"
+                    >
+                      ➕ Create Invoice
+                    </button>
+                  </div>
+
+                  {invoices.length === 0 ? (
+                    <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center my-8">
+                      <div class="text-4xl mb-3">📄</div>
+                      <h3 class="text-lg font-bold text-slate-800">No invoices yet</h3>
+                      <p class="text-sm text-slate-500 mb-4">Create your first invoice to generate and print PDF summaries.</p>
+                      <button
+                        onClick={() => {
+                          setCurrentInvoice(createNewInvoiceState());
+                          setView("create");
+                        }}
+                        class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+                      >
+                        Create Invoice
+                      </button>
+                    </div>
+                  ) : (
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          <tr>
+                            <th class="p-4">Invoice #</th>
+                            <th class="p-4">Client</th>
+                            <th class="p-4">Date</th>
+                            <th class="p-4">Total</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                          {invoices.map((inv) => {
+                            const { total } = calculateTotals(inv);
+                            return (
+                              <tr key={inv.id} class="hover:bg-slate-50 transition">
+                                <td class="p-4 font-bold text-indigo-600">{inv.id}</td>
+                                <td class="p-4 font-medium text-slate-900">{inv.clientName || "Unnamed Client"}</td>
+                                <td class="p-4 text-slate-500">{inv.issueDate}</td>
+                                <td class="p-4 font-bold text-slate-900">£{total.toFixed(2)}</td>
+                                <td class="p-4">
+                                  <span class={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                    inv.status === "PAID" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                                  }`}>
+                                    {inv.status}
+                                  </span>
+                                </td>
+                                <td class="p-4 text-right">
+                                  <button
+                                    onClick={() => {
+                                      setCurrentInvoice(inv);
+                                      setView("preview");
+                                    }}
+                                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-md text-xs font-semibold transition"
+                                  >
+                                    View / Print
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {view === "create" && (
+                <InvoiceForm
+                  invoice={currentInvoice}
+                  onSave={handleSaveInvoice}
+                  onCancel={() => setView(invoices.length > 0 ? "list" : "list")}
+                />
+              )}
+
+              {view === "preview" && currentInvoice && (
+                <div>
+                  {/* Action Toolbar */}
+                  <div class="no-print flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+                    <button
+                      onClick={() => setView("list")}
+                      class="text-sm font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1"
+                    >
+                      ← Dashboard
+                    </button>
+
+                    <div class="flex items-center gap-3">
+                      <button
+                        onClick={() => window.print()}
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow transition flex items-center gap-2"
+                      >
+                        🖨️ Print / Save as PDF
+                      </button>
+                      <button
+                        onClick={() => setView("create")}
+                        class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-lg text-sm font-semibold transition"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteInvoice(currentInvoice.id)}
+                        class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3.5 py-2 rounded-lg text-sm font-semibold transition"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Clean Invoice View */}
+                  <div id="printable-invoice" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden max-w-4xl mx-auto">
+                    {/* Header Band */}
+                    <div class="bg-slate-900 text-white p-8">
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <h2 class="text-2xl font-bold tracking-tight">{business.name}</h2>
+                          <p class="text-xs text-slate-400 whitespace-pre-line mt-1">{business.address}</p>
+                          <p class="text-xs text-slate-400 mt-1">{business.email} • {business.phone}</p>
+                          <p class="text-xs text-slate-400 mt-1">VAT: {business.vatNo} • Co. No: {business.companyNo}</p>
+                        </div>
+                        <div class="text-right">
+                          <h1 class="text-3xl font-black tracking-widest text-slate-100">INVOICE</h1>
+                          <p class="text-sm text-slate-400 font-bold mt-1">{currentInvoice.id}</p>
+                          <span class="inline-block mt-2 px-3 py-1 rounded bg-emerald-600/30 text-emerald-300 text-xs font-bold border border-emerald-500/40">
+                            {currentInvoice.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Metadata */}
+                    <div class="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50/70 border-b border-slate-200 text-xs">
+                      <div>
+                        <span class="text-slate-400 uppercase font-bold tracking-wider block mb-1">Bill To</span>
+                        <p class="font-bold text-slate-900 text-sm">{currentInvoice.clientName || "—"}</p>
+                        <p class="text-slate-600 whitespace-pre-line mt-1">{currentInvoice.clientAddress}</p>
+                      </div>
+                      <div>
+                        <span class="text-slate-400 uppercase font-bold tracking-wider block mb-1">Email / Phone</span>
+                        <p class="text-slate-800 font-medium">{currentInvoice.clientEmail || "—"}</p>
+                        <p class="text-slate-800 font-medium">{currentInvoice.clientPhone || "—"}</p>
+                      </div>
+                      <div>
+                        <span class="text-slate-400 uppercase font-bold tracking-wider block mb-1">Issue Date</span>
+                        <p class="text-slate-800 font-semibold">{currentInvoice.issueDate}</p>
+                      </div>
+                      <div>
+                        <span class="text-slate-400 uppercase font-bold tracking-wider block mb-1">Due Date</span>
+                        <p class="text-slate-800 font-semibold">{currentInvoice.dueDate}</p>
+                      </div>
+                    </div>
+
+                    {/* Line Items */}
+                    <div class="p-8">
+                      <table class="w-full text-left text-xs mb-8">
+                        <thead>
+                          <tr class="border-b border-slate-200 text-slate-400 uppercase font-bold pb-2">
+                            <th class="py-2">Description</th>
+                            <th class="py-2 text-center">Qty</th>
+                            <th class="py-2 text-right">Unit Price</th>
+                            <th class="py-2 text-center">VAT</th>
+                            <th class="py-2 text-right">Net</th>
+                            <th class="py-2 text-right">VAT Amt</th>
+                            <th class="py-2 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                          {currentInvoice.items.map((item, i) => {
+                            const raw = (Number(item.qty) || 0) * (Number(item.unitPrice) || 0);
+                            const net = raw - (raw * (Number(item.discount) || 0)) / 100;
+                            const vatAmt = (net * (Number(item.vatPercent) || 0)) / 100;
+                            const itemTotal = net + vatAmt;
+                            return (
+                              <tr key={i}>
+                                <td class="py-3 font-semibold text-slate-800">{item.description || "Item"}</td>
+                                <td class="py-3 text-center text-slate-600">{item.qty}</td>
+                                <td class="py-3 text-right text-slate-600">£{Number(item.unitPrice).toFixed(2)}</td>
+                                <td class="py-3 text-center text-slate-600">{item.vatPercent}%</td>
+                                <td class="py-3 text-right text-slate-600">£{net.toFixed(2)}</td>
+                                <td class="py-3 text-right text-slate-600">£{vatAmt.toFixed(2)}</td>
+                                <td class="py-3 text-right font-bold text-slate-900">£{itemTotal.toFixed(2)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+
+                      {/* Totals Section */}
+                      {(() => {
+                        const { subtotal, totalVat, total } = calculateTotals(currentInvoice);
+                        return (
+                          <div class="flex justify-end border-t border-slate-200 pt-4">
+                            <div class="w-64 space-y-2 text-xs">
+                              <div class="flex justify-between text-slate-600">
+                                <span>Subtotal (excl. VAT):</span>
+                                <span class="font-medium">£{subtotal.toFixed(2)}</span>
+                              </div>
+                              <div class="flex justify-between text-slate-600">
+                                <span>VAT Total:</span>
+                                <span class="font-medium">£{totalVat.toFixed(2)}</span>
+                              </div>
+                              <div class="flex justify-between text-base font-black text-slate-900 border-t border-slate-200 pt-2">
+                                <span>Total Due:</span>
+                                <span>£{total.toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Bank Details & Notes */}
+                      <div class="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4 text-xs text-slate-500">
+                        <div>
+                          <span class="font-bold text-slate-700 uppercase block mb-1">Payment Details</span>
+                          <p>Bank: {business.bankName}</p>
+                          <p>Sort Code: {business.sortCode} • Account No: {business.accountNo}</p>
+                        </div>
+                        <div>
+                          <span class="font-bold text-slate-700 uppercase block mb-1">Notes</span>
+                          <p>{currentInvoice.notes || "Thank you for your business."}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {view === "settings" && (
+                <BusinessSettings business={business} onSave={(b) => { setBusiness(b); setView("list"); }} />
+              )}
+            </main>
           </div>
-        </aside>
+        </div>
+      );
+    }
 
-        {/* Main */}
-        <main style={{ flex: 1, overflowY: "auto", padding: "0 24px" }}>
-          {screen === "dashboard" && <Dashboard invoices={invoices} business={biz} onView={handleView} onNew={handleNew} onToggle={handleToggle} onDelete={handleDelete} />}
-          {screen === "form"      && <InvoiceForm existing={editing} business={biz} invoices={invoices} onSave={handleSaveInv} onCancel={handleBack} />}
-          {screen === "view"      && selected && <InvoiceDetail invoice={selected} business={biz} onBack={handleBack} onEdit={handleEdit} onDelete={handleDelete} onToggle={handleToggle} />}
-          {screen === "settings"  && <Settings business={biz} onSave={handleSaveBiz} />}
-        </main>
-      </div>
-    </div>
-  );
-}
+    function InvoiceForm({ invoice, onSave, onCancel }) {
+      const [form, setForm] = useState(invoice);
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-</script>
+      const updateItem = (index, field, val) => {
+        const items = [...form.items];
+        items[index][field] = val;
+        setForm({ ...form, items });
+      };
+
+      const addItem = () => {
+        setForm({
+          ...form,
+          items: [...form.items, { description: "", qty: 1, unitPrice: 0, vatPercent: 20, discount: 0 }]
+        });
+      };
+
+      const removeItem = (index) => {
+        setForm({ ...form, items: form.items.filter((_, i) => i !== index) });
+      };
+
+      return (
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+          <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100">Invoice Details</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Invoice Number</label>
+              <input
+                type="text"
+                value={form.id}
+                onChange={(e) => setForm({ ...form, id: e.target.value })}
+                class="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Issue Date</label>
+              <input
+                type="date"
+                value={form.issueDate}
+                onChange={(e) => setForm({ ...form, issueDate: e.target.value })}
+                class="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Due Date</label>
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                class="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+              />
+            </div>
+          </div>
+
+          <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Client Details</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <input
+              type="text"
+              placeholder="Customer / Company Name *"
+              value={form.clientName}
+              onChange={(e) => setForm({ ...form, clientName: e.target.value })}
+              class="border border-slate-300 rounded-lg p-2.5 text-sm"
+            />
+            <input
+              type="email"
+              placeholder="Client Email"
+              value={form.clientEmail}
+              onChange={(e) => setForm({ ...form, clientEmail: e.target.value })}
+              class="border border-slate-300 rounded-lg p-2.5 text-sm"
+            />
+            <input
+              type="tel"
+              placeholder="Phone Number"
+              value={form.clientPhone}
+              onChange={(e) => setForm({ ...form, clientPhone: e.target.value })}
+              class="border border-slate-300 rounded-lg p-2.5 text-sm"
+            />
+            <input
+              type="text"
+              placeholder="Billing Address"
+              value={form.clientAddress}
+              onChange={(e) => setForm({ ...form, clientAddress: e.target.value })}
+              class="border border-slate-300 rounded-lg p-2.5 text-sm"
+            />
+          </div>
+
+          <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Items</h3>
+          <div class="space-y-3 mb-6">
+            {form.items.map((item, idx) => (
+              <div key={idx} class="grid grid-cols-12 gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200 text-sm">
+                <input
+                  type="text"
+                  placeholder="Item description"
+                  value={item.description}
+                  onChange={(e) => updateItem(idx, "description", e.target.value)}
+                  class="col-span-5 border border-slate-300 rounded p-2 bg-white"
+                />
+                <input
+                  type="number"
+                  placeholder="Qty"
+                  value={item.qty}
+                  onChange={(e) => updateItem(idx, "qty", e.target.value)}
+                  class="col-span-2 border border-slate-300 rounded p-2 bg-white text-center"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Price"
+                  value={item.unitPrice}
+                  onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+                  class="col-span-2 border border-slate-300 rounded p-2 bg-white text-right"
+                />
+                <select
+                  value={item.vatPercent}
+                  onChange={(e) => updateItem(idx, "vatPercent", Number(e.target.value))}
+                  class="col-span-2 border border-slate-300 rounded p-2 bg-white"
+                >
+                  <option value={0}>0% VAT</option>
+                  <option value={5}>5% VAT</option>
+                  <option value={20}>20% VAT</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => removeItem(idx)}
+                  class="col-span-1 text-rose-500 font-bold hover:text-rose-700 text-center"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addItem}
+              class="text-xs font-bold text-indigo-600 hover:text-indigo-800 py-1"
+            >
+              ➕ Add Line Item
+            </button>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onCancel}
+              class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => onSave(form)}
+              class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow"
+            >
+              Save & Preview
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    function BusinessSettings({ business, onSave }) {
+      const [form, setForm] = useState(business);
+
+      return (
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 max-w-2xl">
+          <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100">Business Details</h2>
+          <div class="space-y-4 text-sm">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Company / Business Name</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                class="w-full border border-slate-300 rounded-lg p-2.5"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Address</label>
+              <textarea
+                rows="3"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                class="w-full border border-slate-300 rounded-lg p-2.5"
+              />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">VAT Number</label>
+                <input
+                  type="text"
+                  value={form.vatNo}
+                  onChange={(e) => setForm({ ...form, vatNo: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Company Number</label>
+                <input
+                  type="text"
+                  value={form.companyNo}
+                  onChange={(e) => setForm({ ...form, companyNo: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Bank Name</label>
+                <input
+                  type="text"
+                  value={form.bankName}
+                  onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Sort Code</label>
+                <input
+                  type="text"
+                  value={form.sortCode}
+                  onChange={(e) => setForm({ ...form, sortCode: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Account Number</label>
+                <input
+                  type="text"
+                  value={form.accountNo}
+                  onChange={(e) => setForm({ ...form, accountNo: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onSave(form)}
+              class="mt-4 bg-slate-900 text-white font-bold px-5 py-2.5 rounded-lg hover:bg-slate-800 transition"
+            >
+              Save Settings
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
 </body>
 </html>
