@@ -41,7 +41,7 @@
     const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.invoicemateglobal";
 
     function App() {
-      const [view, setView] = useState("list"); // 'list', 'create', 'preview', 'settings'
+      const [view, setView] = useState("list");
       const [showBanner, setShowBanner] = useState(true);
       const [invoices, setInvoices] = useState(() => {
         const saved = localStorage.getItem("invoicemate_web_invoices");
@@ -59,8 +59,7 @@
           companyNo: "12345678",
           bankName: "Lloyds",
           sortCode: "20-40-50",
-          accountNo: "12345678",
-          logo: ""
+          accountNo: "12345678"
         };
       });
 
@@ -74,7 +73,7 @@
 
       const createNewInvoiceState = () => ({
         id: "INV-" + String(invoices.length + 1).padStart(4, "0"),
-        status: "PAID",
+        status: "UNPAID",
         clientName: "",
         clientEmail: "",
         clientPhone: "",
@@ -98,6 +97,12 @@
         setView("preview");
       };
 
+      const toggleStatus = (inv) => {
+        const newStatus = inv.status === "PAID" ? "UNPAID" : "PAID";
+        const updated = { ...inv, status: newStatus };
+        handleSaveInvoice(updated);
+      };
+
       const handleDeleteInvoice = (id) => {
         setInvoices(invoices.filter((i) => i.id !== id));
         setView("list");
@@ -119,12 +124,12 @@
 
       return (
         <div class="flex flex-col min-h-screen">
-          {/* Top Promotional Banner */}
+          {/* Top Promo Banner */}
           {showBanner && (
             <div class="no-print bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 text-white px-4 py-2.5 flex items-center justify-between shadow-md text-sm">
               <div class="flex items-center gap-3">
                 <div class="bg-white text-indigo-700 p-1 rounded font-black text-xs">IM</div>
-                <span><strong>InvoiceMate Global</strong> — Manage client invoices, expenses, and PDF receipts on the go.</span>
+                <span><strong>InvoiceMate Global</strong> — Manage invoices, client ledgers, and expenses on Android.</span>
               </div>
               <div class="flex items-center gap-3">
                 <a
@@ -180,7 +185,7 @@
                 </nav>
               </div>
 
-              {/* Sidebar Android Ad */}
+              {/* Sidebar Play Store Badge */}
               <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/60 text-center">
                 <p class="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wider">Also on Android</p>
                 <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-90 transition">
@@ -193,14 +198,14 @@
               </div>
             </aside>
 
-            {/* Main Content Area */}
+            {/* Main Content */}
             <main class="flex-1 p-6 md:p-8 max-w-5xl mx-auto w-full">
               {view === "list" && (
                 <div>
                   <div class="flex justify-between items-center mb-6">
                     <div>
                       <h1 class="text-2xl font-black text-slate-900">Invoices</h1>
-                      <p class="text-sm text-slate-500">{invoices.length} total generated</p>
+                      <p class="text-sm text-slate-500">{invoices.length} total invoices</p>
                     </div>
                     <button
                       onClick={() => {
@@ -217,7 +222,7 @@
                     <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center my-8">
                       <div class="text-4xl mb-3">📄</div>
                       <h3 class="text-lg font-bold text-slate-800">No invoices yet</h3>
-                      <p class="text-sm text-slate-500 mb-4">Create your first invoice to generate and print PDF summaries.</p>
+                      <p class="text-sm text-slate-500 mb-4">Create your first invoice to generate and print PDF documents.</p>
                       <button
                         onClick={() => {
                           setCurrentInvoice(createNewInvoiceState());
@@ -251,11 +256,17 @@
                                 <td class="p-4 text-slate-500">{inv.issueDate}</td>
                                 <td class="p-4 font-bold text-slate-900">£{total.toFixed(2)}</td>
                                 <td class="p-4">
-                                  <span class={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                                    inv.status === "PAID" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
-                                  }`}>
-                                    {inv.status}
-                                  </span>
+                                  <button
+                                    onClick={() => toggleStatus(inv)}
+                                    title="Click to toggle Paid/Unpaid"
+                                    class={`px-2.5 py-1 rounded-full text-xs font-bold transition ${
+                                      inv.status === "PAID"
+                                        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                        : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                                    }`}
+                                  >
+                                    {inv.status} ⟳
+                                  </button>
                                 </td>
                                 <td class="p-4 text-right">
                                   <button
@@ -282,13 +293,13 @@
                 <InvoiceForm
                   invoice={currentInvoice}
                   onSave={handleSaveInvoice}
-                  onCancel={() => setView(invoices.length > 0 ? "list" : "list")}
+                  onCancel={() => setView("list")}
                 />
               )}
 
               {view === "preview" && currentInvoice && (
                 <div>
-                  {/* Action Toolbar */}
+                  {/* Clean Action Toolbar (Only Print, Edit, Delete) */}
                   <div class="no-print flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
                     <button
                       onClick={() => setView("list")}
@@ -319,9 +330,8 @@
                     </div>
                   </div>
 
-                  {/* Clean Invoice View */}
+                  {/* Printable Clean Invoice */}
                   <div id="printable-invoice" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden max-w-4xl mx-auto">
-                    {/* Header Band */}
                     <div class="bg-slate-900 text-white p-8">
                       <div class="flex justify-between items-start">
                         <div>
@@ -333,14 +343,21 @@
                         <div class="text-right">
                           <h1 class="text-3xl font-black tracking-widest text-slate-100">INVOICE</h1>
                           <p class="text-sm text-slate-400 font-bold mt-1">{currentInvoice.id}</p>
-                          <span class="inline-block mt-2 px-3 py-1 rounded bg-emerald-600/30 text-emerald-300 text-xs font-bold border border-emerald-500/40">
-                            {currentInvoice.status}
-                          </span>
+                          <button
+                            onClick={() => toggleStatus(currentInvoice)}
+                            title="Click to toggle Paid/Unpaid"
+                            class={`inline-block mt-2 px-3 py-1 rounded text-xs font-bold border transition ${
+                              currentInvoice.status === "PAID"
+                                ? "bg-emerald-600/30 text-emerald-300 border-emerald-500/40 hover:bg-emerald-600/50"
+                                : "bg-amber-600/30 text-amber-300 border-amber-500/40 hover:bg-amber-600/50"
+                            }`}
+                          >
+                            {currentInvoice.status} ⟳
+                          </button>
                         </div>
                       </div>
                     </div>
 
-                    {/* Metadata */}
                     <div class="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50/70 border-b border-slate-200 text-xs">
                       <div>
                         <span class="text-slate-400 uppercase font-bold tracking-wider block mb-1">Bill To</span>
@@ -362,7 +379,6 @@
                       </div>
                     </div>
 
-                    {/* Line Items */}
                     <div class="p-8">
                       <table class="w-full text-left text-xs mb-8">
                         <thead>
@@ -397,7 +413,6 @@
                         </tbody>
                       </table>
 
-                      {/* Totals Section */}
                       {(() => {
                         const { subtotal, totalVat, total } = calculateTotals(currentInvoice);
                         return (
@@ -420,7 +435,6 @@
                         );
                       })()}
 
-                      {/* Bank Details & Notes */}
                       <div class="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4 text-xs text-slate-500">
                         <div>
                           <span class="font-bold text-slate-700 uppercase block mb-1">Payment Details</span>
@@ -470,15 +484,26 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
           <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100">Invoice Details</h2>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Invoice Number</label>
               <input
                 type="text"
                 value={form.id}
                 onChange={(e) => setForm({ ...form, id: e.target.value })}
-                class="w-full border border-slate-300 rounded-lg p-2.5 text-sm"
+                class="w-full border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-indigo-600"
               />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Status</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                class="w-full border border-slate-300 rounded-lg p-2.5 text-sm font-semibold bg-white"
+              >
+                <option value="PAID">PAID</option>
+                <option value="UNPAID">UNPAID</option>
+              </select>
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Issue Date</label>
