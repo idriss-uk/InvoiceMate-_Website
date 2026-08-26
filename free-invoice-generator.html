@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Invoicer – UK Invoice Generator</title>
-  <meta name="description" content="Professional UK invoice generator. Also on Android – InvoiceMate Global." />
+  <title>Free Invoice Generator – Invoicer</title>
+  <meta name="description" content="Free professional UK invoice generator. Print or save as PDF. Also on Android – InvoiceMate Global." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -595,10 +595,6 @@ const InvoiceForm = ({ existing, business, invoices, onSave, onCancel }) => {
 
 // ─── INVOICE DETAIL ───────────────────────────────────────────────────────────
 const InvoiceDetail = ({ invoice, business, onBack, onEdit, onDelete, onToggle }) => {
-  const totals = calcTotals(invoice.items);
-  const sym    = business.sym || "£";
-  const [copied, setCopied] = useState(false);
-
   const handlePrint = () => {
     const el = document.getElementById("invoice-preview-print");
     if (!el) return;
@@ -607,41 +603,33 @@ const InvoiceDetail = ({ invoice, business, onBack, onEdit, onDelete, onToggle }
     w.document.close(); w.focus(); setTimeout(() => { w.print(); w.close(); }, 300);
   };
 
-  const handleEmail = () => {
-    const sub  = encodeURIComponent(`Invoice ${invoice.number} from ${business.name}`);
-    const body = encodeURIComponent(`Dear ${invoice.customer.name},\n\nPlease find attached invoice ${invoice.number} for ${fmt(totals.total, sym)}, due ${fmtDate(invoice.dueDate)}.\n\nKind regards,\n${business.name}`);
-    window.open(`mailto:${invoice.customer.email}?subject=${sub}&body=${body}`);
-  };
-
-  const handleWhatsApp = () => {
-    const msg = encodeURIComponent(`Hi ${invoice.customer.name}, invoice ${invoice.number} for ${fmt(totals.total, sym)} due ${fmtDate(invoice.dueDate)}. From ${business.name}.`);
-    window.open(`https://wa.me/?text=${msg}`, "_blank");
-  };
-
-  const handleCopy = () => {
-    const t = `Invoice ${invoice.number} | ${invoice.customer.name} | ${fmt(totals.total, sym)} | Due: ${fmtDate(invoice.dueDate)} | ${invoice.status.toUpperCase()}`;
-    navigator.clipboard.writeText(t).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-  };
-
   return (
     <div style={{ padding: "24px 0" }}>
+      {/* Toolbar — Print/Save as PDF · Edit · Delete */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
         <Btn variant="ghost" size="sm" onClick={onBack}><Icon d={IC.back} size={14} /> Dashboard</Btn>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Btn variant="secondary" size="sm" onClick={handlePrint}><Icon d={IC.print} size={13} /> Print</Btn>
-          <Btn variant="secondary" size="sm" onClick={handleEmail}><Icon d={IC.mail} size={13} /> Email</Btn>
-          <Btn variant="secondary" size="sm" onClick={handleWhatsApp}><Icon d={IC.whatsapp} size={13} /> WhatsApp</Btn>
-          <Btn variant="secondary" size="sm" onClick={handleCopy}>{copied ? <><Icon d={IC.check} size={13} /> Copied!</> : "Copy Summary"}</Btn>
-          <Btn size="sm" onClick={() => onEdit(invoice)}><Icon d={IC.edit} size={13} /> Edit</Btn>
+          {/* Print / Save as PDF — prominent primary style */}
+          <button onClick={handlePrint} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 10, border: "none", cursor: "pointer", background: "#0f172a", color: "#fff", fontWeight: 700, fontSize: 13, fontFamily: "inherit", boxShadow: "0 1px 4px rgba(0,0,0,.18)", transition: "background .15s" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#1e3a5f"}
+            onMouseLeave={e => e.currentTarget.style.background = "#0f172a"}>
+            {/* PDF icon */}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+              <line x1="9" y1="11" x2="15" y2="11"/>
+            </svg>
+            Print / Save as PDF
+          </button>
+          <Btn variant="secondary" size="sm" onClick={() => onEdit(invoice)}><Icon d={IC.edit} size={13} /> Edit</Btn>
+          <Btn variant="danger"    size="sm" onClick={() => { if (confirm("Delete this invoice?")) onDelete(invoice.id); }}><Icon d={IC.trash} size={13} /> Delete</Btn>
         </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
         <Badge status={invoice.status} onClick={() => onToggle(invoice.id)} />
         <span style={{ fontSize: 13, color: "#94a3b8" }}>Click badge to toggle paid / unpaid</span>
-        <div style={{ marginLeft: "auto" }}>
-          <Btn variant="danger" size="sm" onClick={() => { if (confirm("Delete this invoice?")) onDelete(invoice.id); }}><Icon d={IC.trash} size={13} /> Delete</Btn>
-        </div>
       </div>
 
       <div style={{ border: "1px solid #e2e8f0", borderRadius: 16, overflow: "hidden" }}>
@@ -843,4 +831,3 @@ ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
-.
