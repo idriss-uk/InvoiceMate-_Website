@@ -44,16 +44,25 @@ document.addEventListener('DOMContentLoaded', () => {
       spans[2].style.transform = 'none';
     });
   });
-
-  // ---- Smooth Scroll for Anchor Links ----
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', (e) => {
+document.querySelectorAll('.nav-links a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    const targetId = this.getAttribute('href');
+    if (targetId === '#' || targetId === '') return;
+    
+    const targetElement = document.querySelector(targetId);
+    if (targetElement) {
       e.preventDefault();
-      const target = document.querySelector(anchor.getAttribute('href'));
-      if (target) {
-        const offset = 80;
-        const top = target.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top, behavior: 'smooth' });
+      const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 70;
+      const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navbarHeight - 20;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  });
+});
       }
     });
   });
