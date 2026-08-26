@@ -126,6 +126,11 @@ ul, ol {
   padding: var(--section-padding);
 }
 
+/* Ensure sections have scroll margin so navbar doesn't cover headings */
+section[id] {
+  scroll-margin-top: 90px;
+}
+
 /* ---- Typography ---- */
 .section-label {
   font-family: var(--font-heading);
@@ -172,45 +177,55 @@ ul, ol {
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: 20px 0;
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
   transition: all var(--transition-base);
+  background: rgba(6, 14, 30, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .navbar.scrolled {
-  background: rgba(6, 14, 30, 0.92);
+  background: rgba(6, 14, 30, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 12px 0;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  padding: 10px 0;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 .navbar .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
 }
 
 .navbar-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  text-decoration: none;
+  padding: 4px 0;
 }
 
 .navbar-logo {
-  max-height: 42px;
+  height: 38px;
   width: auto;
   display: block;
   border-radius: var(--radius-sm);
   object-fit: contain;
-  margin-right: 8px;
 }
 
 .navbar-name {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   color: var(--white);
   letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .navbar-name span {
@@ -220,18 +235,20 @@ ul, ol {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 28px;
 }
 
 .nav-links a {
   font-size: 0.9rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.75);
   transition: color var(--transition-fast);
   position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.nav-links a::after {
+.nav-links a:not(.nav-cta)::after {
   content: '';
   position: absolute;
   bottom: -4px;
@@ -247,12 +264,12 @@ ul, ol {
   color: var(--white);
 }
 
-.nav-links a:hover::after {
+.nav-links a:not(.nav-cta):hover::after {
   width: 100%;
 }
 
 .nav-cta {
-  padding: 10px 24px;
+  padding: 10px 22px;
   background: var(--gradient-cta);
   border-radius: var(--radius-full);
   font-size: 0.85rem;
@@ -371,7 +388,7 @@ ul, ol {
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
-  padding-top: 100px;
+  padding-top: 120px;
   padding-bottom: 60px;
 }
 
@@ -447,7 +464,7 @@ ul, ol {
 .hero-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
   animation: fadeInUp 0.8s var(--ease-out) 0.3s both;
 }
@@ -456,7 +473,7 @@ ul, ol {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 32px;
+  padding: 14px 28px;
   background: var(--gradient-cta);
   color: var(--white);
   font-family: var(--font-heading);
@@ -498,7 +515,7 @@ ul, ol {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 16px 28px;
+  padding: 14px 24px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--white);
@@ -511,7 +528,7 @@ ul, ol {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
@@ -1394,17 +1411,23 @@ ul, ol {
 }
 
 /* ============================================
-   SCROLL ANIMATIONS
+   SCROLL ANIMATIONS & VISIBILITY GUARDS
    ============================================ */
 .reveal {
   opacity: 0;
-  transform: translateY(40px);
+  transform: translateY(30px);
   transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
 }
 
 .reveal.revealed {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Fallback ensuring sections are always visible */
+section {
+  position: relative;
+  width: 100%;
 }
 
 .reveal-delay-1 { transition-delay: 0.1s; }
