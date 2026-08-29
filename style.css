@@ -1559,3 +1559,22 @@ section, .features, .pricing, .about-contact, .footer {
   visibility: visible !important;
   opacity: 1 !important;
 }
+/* =============================================
+   FAQ Accordion Styling
+   ============================================= */
+details.faq-item {
+    transition: all 0.2s ease;
+}
+
+details.faq-item[open] {
+    border-color: #4f46e5 !important;
+}
+
+details.faq-item[open] summary .faq-icon {
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+details.faq-item summary::-webkit-details-marker {
+    display: none;
+}
