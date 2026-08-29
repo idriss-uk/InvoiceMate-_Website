@@ -7,3 +7,23 @@
     <priority>1.0</priority>
   </url>
 </urlset>
+<url>
+  <loc>https://invoicemateglobal.com/blog/</loc>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://invoicemateglobal.com/blog/small-business-cash-flow-guide.html</loc>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://invoicemateglobal.com/blog/how-to-chase-overdue-payments.html</loc>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://invoicemateglobal.com/blog/legal-invoice-requirements-and-vat-guide.html</loc>
+  <priority>0.70</priority>
+</url>
+<url>
+  <loc>https://invoicemateglobal.com/blog/digital-bookkeeping-tips-for-freelancers.html</loc>
+  <priority>0.70</priority>
+</url>
