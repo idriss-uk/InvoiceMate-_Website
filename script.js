@@ -15,20 +15,42 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', handleNavScroll, { passive: true });
   handleNavScroll();
 
-  // ---- Mobile Nav Toggle ----
+  // ---- Mobile Nav Toggle & Accessibility ----
   const navToggle = document.getElementById('nav-toggle');
   const navLinks = document.getElementById('nav-links');
 
   if (navToggle && navLinks) {
-    navToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
+    const setMobileMenuState = (isOpen) => {
+      navLinks.classList.toggle('active', isOpen);
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    };
+
+    navToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isCurrentlyActive = navLinks.classList.contains('active');
+      setMobileMenuState(!isCurrentlyActive);
     });
 
-    // Close mobile nav when clicking internal anchor links only
-    navLinks.querySelectorAll('a[href^="#"]').forEach((link) => {
+    // Close mobile nav when clicking any link inside nav-links
+    navLinks.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
-        navLinks.classList.remove('active');
+        setMobileMenuState(false);
       });
+    });
+
+    // Close nav when clicking outside navbar
+    document.addEventListener('click', (e) => {
+      if (navLinks.classList.contains('active') && navbar && !navbar.contains(e.target)) {
+        setMobileMenuState(false);
+      }
+    });
+
+    // Close nav on Escape key press
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+        setMobileMenuState(false);
+        navToggle.focus();
+      }
     });
   }
 
