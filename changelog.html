@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18351066862"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-18351066862');
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>InvoiceMate Global | Release Notes & Documentation Changelog</title>
+  <meta name="title" content="InvoiceMate Global | Release Notes & Documentation Changelog">
+  <meta name="description" content="Explore release notes and feature updates for InvoiceMate Global on Android and Web. See what is new in version v1.5.0.">
+  <meta name="keywords" content="InvoiceMate changelog, release notes, android invoicing updates, IVA Portugal invoicing, values-pt translation, PDF engine UTF-8">
+  <link rel="canonical" href="https://invoicemateglobal.com/changelog.html">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ============================================
+       NAVIGATION
+       ============================================ -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <img src="logo.png" alt="InvoiceMate Global logo" class="navbar-logo">
+        <div class="navbar-name">InvoiceMate<span>Global</span></div>
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="/#features">Features</a>
+        <a href="/#pricing">Pricing</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/blog/">Blog</a>
+        <a href="/changelog.html" style="color: var(--white); font-weight: 600;">Changelog</a>
+        <a href="/free-invoice-generator.html">Create a Free Web Invoice</a>
+        <a href="/#contact">Contact</a>
+        <a href="https://play.google.com/store/apps/details?id=com.invoicemateglobal" class="nav-cta" target="_blank" rel="noopener noreferrer">Get the App</a>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav-links">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================================
+       HEADER
+       ============================================ -->
+  <header style="background: var(--gradient-hero); padding: 140px 0 60px; color: white; text-align: center; position: relative;">
+    <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+      <div class="hero-badge" style="margin-bottom: 16px;">
+        <span class="dot"></span>
+        Documentation & Releases
+      </div>
+      <h1 style="font-family: var(--font-heading); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 16px;">
+        Product <span style="background: var(--gradient-cta); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Changelog</span>
+      </h1>
+      <p style="color: var(--gray-300); font-size: 1.1rem; line-height: 1.6;">
+        Track continuous improvements, new country fiscal presets, localization updates, and offline PDF engine enhancements across InvoiceMate Global.
+      </p>
+    </div>
+  </header>
+
+  <!-- ============================================
+       CHANGELOG CONTENT
+       ============================================ -->
+  <main style="background: var(--gray-50); padding: 70px 0 100px;">
+    <div class="container" style="max-width: 840px; margin: 0 auto; padding: 0 24px;">
+
+      <!-- Version 1.5.0 (Latest) -->
+      <article style="background: var(--white); border: 1.5px solid rgba(91, 63, 160, 0.3); border-radius: 20px; padding: 36px 40px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: var(--gradient-cta); color: white; font-family: var(--font-heading); font-weight: 800; font-size: 1rem; padding: 6px 16px; border-radius: 9999px;">
+              v1.5.0
+            </span>
+            <span style="color: var(--accent-green); font-weight: 700; font-size: 0.85rem; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 9999px;">
+              Latest Release
+            </span>
+          </div>
+          <time datetime="2026-09-15" style="color: var(--gray-400); font-size: 0.9rem; font-weight: 500;">September 2026</time>
+        </div>
+
+        <h2 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--navy-800); margin-bottom: 12px;">
+          Multi-Country Fiscal Profiles & Portuguese Language Support
+        </h2>
+        <p style="color: var(--gray-600); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+          This milestone update expands InvoiceMate Global's regional fiscal compliance automation, adds full Portuguese localization, and enhances the vector PDF rendering pipeline.
+        </p>
+
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--purple-500); margin-bottom: 12px;">
+            ✨ What's New
+          </h3>
+          <ul style="display: flex; flex-direction: column; gap: 12px;">
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--navy-800); line-height: 1.5;">
+              <span style="color: var(--accent-green); font-weight: bold; flex-shrink: 0;">✓</span>
+              <div>
+                <strong>Automatic country fiscal presets for Portugal (EUR, IVA, NIF):</strong> Automatically configures standard Portuguese VAT tiers (23% normal, 13% intermédio, 6% reduzido), currency formatting, and formal NIF (Número de Identificação Fiscal) display fields.
+              </div>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--navy-800); line-height: 1.5;">
+              <span style="color: var(--accent-green); font-weight: bold; flex-shrink: 0;">✓</span>
+              <div>
+                <strong>Native Portuguese language translation (values-pt):</strong> Full end-to-end interface localization in Portuguese (Português) across all screens, modals, status labels, and generated invoice document headers.
+              </div>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--navy-800); line-height: 1.5;">
+              <span style="color: var(--accent-green); font-weight: bold; flex-shrink: 0;">✓</span>
+              <div>
+                <strong>UTF-8 compliance update in the PDF generator engine:</strong> Enhanced font rendering and character encoding support for special accents (ã, õ, ç, á, é, í), international currency glyphs, and multilingual business names.
+              </div>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--navy-800); line-height: 1.5;">
+              <span style="color: var(--accent-green); font-weight: bold; flex-shrink: 0;">✓</span>
+              <div>
+                <strong>JSON Schema Backup Validation:</strong> Web platform import/export validator now fully recognizes <code>countryCode</code>, <code>taxIdLabel</code>, and <code>taxIdValue</code> schemas from Android device backups.
+              </div>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Version 1.4.0 -->
+      <article style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 36px 40px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: var(--navy-700); color: white; font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; padding: 4px 14px; border-radius: 9999px;">
+              v1.4.0
+            </span>
+          </div>
+          <time datetime="2026-08-10" style="color: var(--gray-400); font-size: 0.9rem;">August 2026</time>
+        </div>
+
+        <h2 style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; color: var(--navy-800); margin-bottom: 12px;">
+          Credit Notes, Client Ledgers & Multilingual Assets
+        </h2>
+        <ul style="display: flex; flex-direction: column; gap: 10px; font-size: 0.92rem; color: var(--gray-600);">
+          <li>• Added standalone Credit Note creation with direct invoice offsetting.</li>
+          <li>• Introduced running client ledger statements with settlement tracking and PDF statement export.</li>
+          <li>• Expanded interface languages: English, Français, Español, Deutsch, and العربية.</li>
+          <li>• Enhanced digital signature and logo placement on vector PDFs.</li>
+        </ul>
+      </article>
+
+      <!-- Version 1.0.0 -->
+      <article style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 36px 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: var(--navy-700); color: white; font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; padding: 4px 14px; border-radius: 9999px;">
+              v1.0.0
+            </span>
+          </div>
+          <time datetime="2026-06-01" style="color: var(--gray-400); font-size: 0.9rem;">June 2026</time>
+        </div>
+
+        <h2 style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; color: var(--navy-800); margin-bottom: 12px;">
+          Initial Launch of InvoiceMate Global
+        </h2>
+        <ul style="display: flex; flex-direction: column; gap: 10px; font-size: 0.92rem; color: var(--gray-600);">
+          <li>• 100% offline-first local SQLite and device storage architecture.</li>
+          <li>• Rapid 30-second PDF invoice generator with status tracking (Paid, Pending, Overdue).</li>
+          <li>• Unlimited client profiles and custom tax/currency configuration.</li>
+          <li>• Pro Lifetime one-time in-app upgrade with Google Play Store licensing.</li>
+        </ul>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="navbar-brand" style="margin-bottom: 16px;">
+            <img src="logo.png" alt="InvoiceMate Global logo" class="navbar-logo">
+            <div class="navbar-name">InvoiceMate<span>Global</span></div>
+          </div>
+          <p>The smart invoicing platform for modern businesses. Built to simplify your financial workflow worldwide.</p>
+          <div class="footer-languages" style="margin-bottom: 20px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.65); line-height: 1.6;">
+            <span style="font-weight: 700; color: rgba(255, 255, 255, 0.95);">Supported Languages:</span><br>
+            English • Français • Español • Deutsch • العربية • Português
+          </div>
+        </div>
+
+        <div class="footer-column">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#pricing">Pricing</a></li>
+            <li><a href="/changelog.html">Changelog</a></li>
+            <li><a href="/free-invoice-generator.html">Web Invoice Maker</a></li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.invoicemateglobal" target="_blank" rel="noopener noreferrer">Download App</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="/#about">About Us</a></li>
+            <li><a href="/blog/">Blog</a></li>
+            <li><a href="/#contact">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column footer-newsletter">
+          <h4>Stay Updated</h4>
+          <p>Get the latest product updates, tips, and business insights delivered to your inbox.</p>
+          <form class="newsletter-form" id="newsletter-form" onsubmit="event.preventDefault(); this.querySelector('input').value=''; this.querySelector('button').textContent='Subscribed ✓';">
+            <input type="email" placeholder="Enter your email" aria-label="Email for newsletter" required>
+            <button type="submit">Subscribe</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 InvoiceMate Global. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="cookie-policy.html">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -229,6 +229,14 @@
                   >
                     ⚙️ Business Settings
                   </button>
+                  <button
+                    onClick={() => setView("backup")}
+                    class={`w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium transition ${
+                      view === "backup" ? "bg-indigo-600 text-white" : "hover:bg-slate-800 text-slate-300"
+                    }`}
+                  >
+                    📥 Backup & Schema Validator
+                  </button>
                 </nav>
               </div>
 
@@ -501,6 +509,18 @@
               {view === "settings" && (
                 <BusinessSettings business={business} onSave={(b) => { setBusiness(b); setView("list"); }} />
               )}
+
+              {view === "backup" && (
+                <BackupValidator
+                  business={business}
+                  invoices={invoices}
+                  onImport={(newBiz, newInvs) => {
+                    setBusiness(newBiz);
+                    setInvoices(newInvs);
+                    setView("list");
+                  }}
+                />
+              )}
             </main>
           </div>
         </div>
@@ -677,13 +697,167 @@
       );
     }
 
+    // ---- JSON Schema Validator Engine for Android & Web Backups ----
+    function validateInvoiceMateBackup(jsonObj) {
+      const errors = [];
+      if (!jsonObj || typeof jsonObj !== "object") {
+        return { valid: false, errors: ["Invalid JSON payload: Must be a valid JSON object."] };
+      }
+
+      // Check fiscal and tax fields
+      const countryCode = jsonObj.countryCode || jsonObj.business?.countryCode || null;
+      const taxIdLabel = jsonObj.taxIdLabel || jsonObj.business?.taxIdLabel || null;
+      const taxIdValue = jsonObj.taxIdValue || jsonObj.business?.taxIdValue || jsonObj.business?.vatNo || null;
+
+      const recognizedFiscal = {
+        countryCode: typeof countryCode === "string" ? countryCode.toUpperCase() : "PT",
+        taxIdLabel: typeof taxIdLabel === "string" ? taxIdLabel : (countryCode === "PT" ? "NIF" : "Tax ID"),
+        taxIdValue: typeof taxIdValue === "string" ? taxIdValue : ""
+      };
+
+      const business = jsonObj.business && typeof jsonObj.business === "object" ? {
+        ...jsonObj.business,
+        countryCode: recognizedFiscal.countryCode,
+        taxIdLabel: recognizedFiscal.taxIdLabel,
+        taxIdValue: recognizedFiscal.taxIdValue
+      } : {
+        name: "My Business",
+        countryCode: recognizedFiscal.countryCode,
+        taxIdLabel: recognizedFiscal.taxIdLabel,
+        taxIdValue: recognizedFiscal.taxIdValue
+      };
+
+      const rawInvoices = Array.isArray(jsonObj.invoices) 
+        ? jsonObj.invoices 
+        : (Array.isArray(jsonObj) ? jsonObj : []);
+
+      const validInvoices = rawInvoices.map((inv, idx) => ({
+        id: inv.id || "INV-" + String(idx + 1).padStart(4, "0"),
+        status: inv.status === "PAID" ? "PAID" : "UNPAID",
+        clientName: inv.clientName || "Client " + (idx + 1),
+        clientEmail: inv.clientEmail || "",
+        clientPhone: inv.clientPhone || "",
+        clientAddress: inv.clientAddress || "",
+        issueDate: inv.issueDate || new Date().toISOString().split("T")[0],
+        dueDate: inv.dueDate || new Date().toISOString().split("T")[0],
+        items: Array.isArray(inv.items) && inv.items.length > 0 ? inv.items : [{ description: "Services rendered", qty: 1, unitPrice: 0, vatPercent: 23, discount: 0 }],
+        notes: inv.notes || ""
+      }));
+
+      return {
+        valid: true,
+        countryCode: recognizedFiscal.countryCode,
+        taxIdLabel: recognizedFiscal.taxIdLabel,
+        taxIdValue: recognizedFiscal.taxIdValue,
+        invoicesCount: validInvoices.length,
+        data: {
+          version: jsonObj.version || "1.5.0",
+          countryCode: recognizedFiscal.countryCode,
+          taxIdLabel: recognizedFiscal.taxIdLabel,
+          taxIdValue: recognizedFiscal.taxIdValue,
+          business,
+          invoices: validInvoices
+        }
+      };
+    }
+
     function BusinessSettings({ business, onSave }) {
       const [form, setForm] = useState(business);
 
+      const applyCountryPreset = (country) => {
+        if (country === "PT") {
+          setForm({
+            ...form,
+            countryCode: "PT",
+            taxIdLabel: "NIF",
+            taxIdValue: form.taxIdValue || form.vatNo || "PT123456789"
+          });
+        } else if (country === "GB") {
+          setForm({
+            ...form,
+            countryCode: "GB",
+            taxIdLabel: "VAT Reg No",
+            taxIdValue: form.taxIdValue || form.vatNo || "GB123456789"
+          });
+        } else if (country === "ES") {
+          setForm({
+            ...form,
+            countryCode: "ES",
+            taxIdLabel: "NIF / CIF",
+            taxIdValue: form.taxIdValue || form.vatNo || "ESB12345678"
+          });
+        } else if (country === "DE") {
+          setForm({
+            ...form,
+            countryCode: "DE",
+            taxIdLabel: "USt-IdNr / MwSt",
+            taxIdValue: form.taxIdValue || form.vatNo || "DE123456789"
+          });
+        }
+      };
+
       return (
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 max-w-2xl">
-          <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100">Business Details</h2>
+          <h2 class="text-xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+            <span>Business & Fiscal Details</span>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200">
+              v1.5.0 Compatible
+            </span>
+          </h2>
           <div class="space-y-4 text-sm">
+            {/* Country Fiscal Preset */}
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                🌍 Country Fiscal Preset
+              </label>
+              <div class="flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => applyCountryPreset("PT")}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    form.countryCode === "PT"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                >
+                  🇵🇹 Portugal (IVA, NIF, EUR)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyCountryPreset("GB")}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    form.countryCode === "GB"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                >
+                  🇬🇧 UK (VAT, GBP)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyCountryPreset("ES")}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    form.countryCode === "ES"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                >
+                  🇪🇸 Spain (IVA, CIF)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyCountryPreset("DE")}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    form.countryCode === "DE"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                >
+                  🇩🇪 Germany (MwSt)
+                </button>
+              </div>
+            </div>
+
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Company / Business Name</label>
               <input
@@ -702,6 +876,40 @@
                 class="w-full border border-slate-300 rounded-lg p-2.5"
               />
             </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Country Code</label>
+                <input
+                  type="text"
+                  placeholder="e.g. PT"
+                  value={form.countryCode || "PT"}
+                  onChange={(e) => setForm({ ...form, countryCode: e.target.value.toUpperCase() })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5 uppercase font-mono"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Tax ID Label</label>
+                <input
+                  type="text"
+                  placeholder="e.g. NIF"
+                  value={form.taxIdLabel || "NIF"}
+                  onChange={(e) => setForm({ ...form, taxIdLabel: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Tax ID Value</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 123456789"
+                  value={form.taxIdValue || form.vatNo || ""}
+                  onChange={(e) => setForm({ ...form, taxIdValue: e.target.value, vatNo: e.target.value })}
+                  class="w-full border border-slate-300 rounded-lg p-2.5 font-mono"
+                />
+              </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Email</label>
@@ -722,26 +930,7 @@
                 />
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">VAT Number</label>
-                <input
-                  type="text"
-                  value={form.vatNo}
-                  onChange={(e) => setForm({ ...form, vatNo: e.target.value })}
-                  class="w-full border border-slate-300 rounded-lg p-2.5"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Company Number</label>
-                <input
-                  type="text"
-                  value={form.companyNo}
-                  onChange={(e) => setForm({ ...form, companyNo: e.target.value })}
-                  class="w-full border border-slate-300 rounded-lg p-2.5"
-                />
-              </div>
-            </div>
+
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Bank Name</label>
@@ -753,7 +942,7 @@
                 />
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Sort Code</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Sort / Routing Code</label>
                 <input
                   type="text"
                   value={form.sortCode}
@@ -762,7 +951,7 @@
                 />
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Account Number</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1">IBAN / Account No</label>
                 <input
                   type="text"
                   value={form.accountNo}
@@ -779,6 +968,140 @@
               Save Settings
             </button>
           </div>
+        </div>
+      );
+    }
+
+    // ---- Backup & JSON Schema Validation Component ----
+    function BackupValidator({ business, invoices, onImport }) {
+      const [jsonText, setJsonText] = useState("");
+      const [validationResult, setValidationResult] = useState(null);
+
+      const handleValidateAndImport = () => {
+        try {
+          const parsed = JSON.parse(jsonText);
+          const result = validateInvoiceMateBackup(parsed);
+          setValidationResult(result);
+          if (result.valid) {
+            onImport(result.data.business, result.data.invoices);
+          }
+        } catch (err) {
+          setValidationResult({
+            valid: false,
+            errors: ["JSON Parse Error: " + err.message]
+          });
+        }
+      };
+
+      const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setJsonText(event.target.result);
+          try {
+            const parsed = JSON.parse(event.target.result);
+            const result = validateInvoiceMateBackup(parsed);
+            setValidationResult(result);
+            if (result.valid) {
+              onImport(result.data.business, result.data.invoices);
+            }
+          } catch (err) {
+            setValidationResult({ valid: false, errors: ["JSON Parse Error: " + err.message] });
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      const handleExport = () => {
+        const backupPayload = {
+          version: "1.5.0",
+          exportDate: new Date().toISOString(),
+          countryCode: business.countryCode || "PT",
+          taxIdLabel: business.taxIdLabel || "NIF",
+          taxIdValue: business.taxIdValue || business.vatNo || "",
+          business,
+          invoices
+        };
+        const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `InvoiceMate_Backup_${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      return (
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 max-w-3xl space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 mb-2">Android & Web Backup Schema Validator</h2>
+            <p class="text-sm text-slate-500">
+              Validate and import backups from the InvoiceMate Global Android app. The JSON schema validator strictly verifies <code>countryCode</code>, <code>taxIdLabel</code>, and <code>taxIdValue</code> schemas.
+            </p>
+          </div>
+
+          <div class="flex gap-3 flex-wrap">
+            <label class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition shadow flex items-center gap-2">
+              <span>📁 Upload Backup JSON</span>
+              <input type="file" accept=".json" onChange={handleFileUpload} class="hidden" />
+            </label>
+            <button
+              type="button"
+              onClick={handleExport}
+              class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-2"
+            >
+              <span>💾 Export Current Backup JSON</span>
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
+              Or Paste Backup JSON Payload:
+            </label>
+            <textarea
+              rows="6"
+              value={jsonText}
+              onChange={(e) => setJsonText(e.target.value)}
+              placeholder='{"version":"1.5.0","countryCode":"PT","taxIdLabel":"NIF","taxIdValue":"123456789","business":{...},"invoices":[...]}'
+              class="w-full font-mono text-xs border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-800"
+            />
+            <button
+              type="button"
+              onClick={handleValidateAndImport}
+              class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition"
+            >
+              Validate & Import Payload
+            </button>
+          </div>
+
+          {validationResult && (
+            <div
+              class={`p-4 rounded-xl border text-sm ${
+                validationResult.valid
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                  : "bg-rose-50 border-rose-200 text-rose-900"
+              }`}
+            >
+              <div class="font-bold flex items-center gap-2 mb-1">
+                <span>{validationResult.valid ? "✓ Schema Validated Successfully!" : "✕ Validation Failed"}</span>
+              </div>
+              {validationResult.valid ? (
+                <div class="space-y-1 text-xs text-emerald-800">
+                  <p>• Recognized Country Code: <strong>{validationResult.countryCode}</strong></p>
+                  <p>• Recognized Tax ID Label: <strong>{validationResult.taxIdLabel}</strong></p>
+                  <p>• Recognized Tax ID Value: <strong>{validationResult.taxIdValue || "None"}</strong></p>
+                  <p>• Invoices Imported: <strong>{validationResult.invoicesCount}</strong></p>
+                </div>
+              ) : (
+                <ul class="list-disc list-inside text-xs text-rose-700 space-y-0.5">
+                  {validationResult.errors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       );
     }

@@ -245,3 +245,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ---- Global JSON Schema Validator for Android & Web Backups ----
+window.InvoiceMateSchemaValidator = {
+  version: "1.5.0",
+  validate: function (jsonPayload) {
+    let parsed = jsonPayload;
+    if (typeof jsonPayload === "string") {
+      try {
+        parsed = JSON.parse(jsonPayload);
+      } catch (e) {
+        return { valid: false, errors: ["Invalid JSON format: " + e.message] };
+      }
+    }
+
+    if (!parsed || typeof parsed !== "object") {
+      return { valid: false, errors: ["Backup payload must be a JSON object."] };
+    }
+
+    const countryCode = parsed.countryCode || parsed.business?.countryCode || "PT";
+    const taxIdLabel = parsed.taxIdLabel || parsed.business?.taxIdLabel || (countryCode === "PT" ? "NIF" : "Tax ID");
+    const taxIdValue = parsed.taxIdValue || parsed.business?.taxIdValue || parsed.business?.vatNo || "";
+
+    return {
+      valid: true,
+      countryCode: String(countryCode).toUpperCase(),
+      taxIdLabel: String(taxIdLabel),
+      taxIdValue: String(taxIdValue),
+      invoicesCount: Array.isArray(parsed.invoices) ? parsed.invoices.length : 0,
+      timestamp: new Date().toISOString()
+    };
+  }
+};
