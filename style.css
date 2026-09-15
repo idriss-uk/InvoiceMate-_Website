@@ -1589,7 +1589,7 @@ details.faq-item {
 }
 
 details.faq-item[open] {
-    border-color: #4f46e5 !important;
+    border-color: #5b3fa0 !important;
 }
 
 details.faq-item[open] summary .faq-icon {
@@ -1599,4 +1599,169 @@ details.faq-item[open] summary .faq-icon {
 
 details.faq-item summary::-webkit-details-marker {
     display: none;
+}
+
+/* =============================================
+   Language Request & Roadmap Modal
+   ============================================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 14, 30, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.25s var(--ease-out);
+}
+
+.modal-dialog {
+  position: relative;
+  background: var(--navy-800);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: var(--radius-xl);
+  max-width: 520px;
+  width: 100%;
+  padding: 36px 32px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(91, 63, 160, 0.2);
+  color: var(--white);
+  animation: modalSlideUp 0.3s var(--ease-out);
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.modal-header {
+  margin-bottom: 24px;
+}
+
+.modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(91, 63, 160, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--purple-300);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-header h3 {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.modal-header p {
+  font-size: 0.88rem;
+  color: var(--gray-400);
+  line-height: 1.6;
+}
+
+.modal-dialog .form-group label {
+  color: var(--gray-200);
+  font-size: 0.825rem;
+}
+
+.modal-dialog .form-group input,
+.modal-dialog .form-group select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  color: var(--white);
+}
+
+.modal-dialog .form-group select option {
+  background: var(--navy-800);
+  color: var(--white);
+}
+
+.modal-dialog .form-group input:focus,
+.modal-dialog .form-group select:focus {
+  border-color: var(--purple-400);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 4px rgba(91, 63, 160, 0.3);
+}
+
+.modal-dialog .btn-submit {
+  margin-top: 8px;
+}
+
+.modal-success {
+  text-align: center;
+  padding: 24px 0 8px;
+}
+
+.modal-success .success-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 16px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 2px solid var(--accent-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-green);
+  font-size: 1.8rem;
+}
+
+.modal-success h4 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.modal-success p {
+  font-size: 0.9rem;
+  color: var(--gray-300);
+  line-height: 1.6;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

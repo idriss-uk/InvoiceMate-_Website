@@ -130,4 +130,118 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     requestAnimationFrame(update);
   }
+
+  // ---- Language Request / Roadmap Modal Handler ----
+  const languageModal = document.getElementById('language-modal');
+  const openLangModalBtns = document.querySelectorAll('.open-language-modal');
+  const closeLangModalBtn = document.getElementById('close-language-modal');
+  const closeSuccessBtn = document.getElementById('close-success-btn');
+  const langReqForm = document.getElementById('language-request-form');
+  const langReqSuccess = document.getElementById('language-request-success');
+  const reqLangSelect = document.getElementById('req-language');
+  const otherLangGroup = document.getElementById('other-lang-group');
+  const otherLangInput = document.getElementById('other-language');
+
+  const openLanguageModal = () => {
+    if (languageModal) {
+      languageModal.style.display = 'flex';
+      languageModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      if (reqLangSelect) reqLangSelect.focus();
+    }
+  };
+
+  const closeLanguageModal = () => {
+    if (languageModal) {
+      languageModal.style.display = 'none';
+      languageModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      // Reset form view after close
+      if (langReqForm && langReqSuccess) {
+        setTimeout(() => {
+          langReqForm.style.display = 'block';
+          langReqSuccess.style.display = 'none';
+          langReqForm.reset();
+          if (otherLangGroup) otherLangGroup.style.display = 'none';
+        }, 300);
+      }
+    }
+  };
+
+  openLangModalBtns.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openLanguageModal();
+    });
+  });
+
+  if (closeLangModalBtn) closeLangModalBtn.addEventListener('click', closeLanguageModal);
+  if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeLanguageModal);
+
+  // Close modal when clicking backdrop
+  if (languageModal) {
+    languageModal.addEventListener('click', (e) => {
+      if (e.target === languageModal) {
+        closeLanguageModal();
+      }
+    });
+  }
+
+  // Close modal on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && languageModal && languageModal.style.display === 'flex') {
+      closeLanguageModal();
+    }
+  });
+
+  // Toggle Other Language input
+  if (reqLangSelect && otherLangGroup) {
+    reqLangSelect.addEventListener('change', () => {
+      if (reqLangSelect.value === 'Other') {
+        otherLangGroup.style.display = 'block';
+        if (otherLangInput) otherLangInput.setAttribute('required', 'required');
+      } else {
+        otherLangGroup.style.display = 'none';
+        if (otherLangInput) otherLangInput.removeAttribute('required');
+      }
+    });
+  }
+
+  // Handle Form Submission & Track Demand Metrics
+  if (langReqForm) {
+    langReqForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const selectedLang = reqLangSelect.value === 'Other' && otherLangInput?.value 
+        ? otherLangInput.value.trim() 
+        : reqLangSelect.value;
+      const country = document.getElementById('req-country')?.value.trim() || 'Unspecified';
+      const email = document.getElementById('req-email')?.value.trim() || '';
+
+      // Track metric in GA4 if available
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'language_request', {
+          language_requested: selectedLang,
+          country: country
+        });
+      }
+
+      // Store in local metrics cache
+      try {
+        const existingRequests = JSON.parse(localStorage.getItem('invoicemate_lang_requests') || '[]');
+        existingRequests.push({
+          language: selectedLang,
+          country: country,
+          email: email,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('invoicemate_lang_requests', JSON.stringify(existingRequests));
+      } catch (err) {
+        console.warn('Could not cache language request', err);
+      }
+
+      // Display success view
+      langReqForm.style.display = 'none';
+      if (langReqSuccess) langReqSuccess.style.display = 'block';
+    });
+  }
 });
