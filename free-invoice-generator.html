@@ -48,6 +48,10 @@
         return saved ? JSON.parse(saved) : [];
       });
       const [currentInvoice, setCurrentInvoice] = useState(null);
+      const [expenses, setExpenses] = useState(() => {
+        const saved = localStorage.getItem("invoicemate_web_expenses");
+        return saved ? JSON.parse(saved) : [];
+      });
       const [business, setBusiness] = useState(() => {
         const saved = localStorage.getItem("invoicemate_web_business");
         return saved ? JSON.parse(saved) : {
@@ -66,6 +70,10 @@
       useEffect(() => {
         localStorage.setItem("invoicemate_web_invoices", JSON.stringify(invoices));
       }, [invoices]);
+
+      useEffect(() => {
+        localStorage.setItem("invoicemate_web_expenses", JSON.stringify(expenses));
+      }, [expenses]);
 
       useEffect(() => {
         localStorage.setItem("invoicemate_web_business", JSON.stringify(business));
@@ -514,9 +522,11 @@
                 <BackupValidator
                   business={business}
                   invoices={invoices}
-                  onImport={(newBiz, newInvs) => {
+                  expenses={expenses}
+                  onImport={(newBiz, newInvs, newExpenses) => {
                     setBusiness(newBiz);
                     setInvoices(newInvs);
+                    setExpenses(newExpenses || []);
                     setView("list");
                   }}
                 />
@@ -744,19 +754,36 @@
         notes: inv.notes || ""
       }));
 
+      // Parse & validate expenses schema (including empty arrays for factory reset wipes)
+      const rawExpenses = Array.isArray(jsonObj.expenses)
+        ? jsonObj.expenses
+        : [];
+
+      const validExpenses = rawExpenses.map((exp, idx) => ({
+        id: exp.id || "EXP-" + String(idx + 1).padStart(4, "0"),
+        title: exp.title || exp.description || "Expense " + (idx + 1),
+        amount: Number(exp.amount) || 0,
+        category: exp.category || "General",
+        date: exp.date || new Date().toISOString().split("T")[0],
+        taxDeductible: Boolean(exp.taxDeductible)
+      }));
+
       return {
         valid: true,
         countryCode: recognizedFiscal.countryCode,
         taxIdLabel: recognizedFiscal.taxIdLabel,
         taxIdValue: recognizedFiscal.taxIdValue,
         invoicesCount: validInvoices.length,
+        expensesCount: validExpenses.length,
+        hasExpensesKey: "expenses" in jsonObj,
         data: {
           version: jsonObj.version || "1.5.0",
           countryCode: recognizedFiscal.countryCode,
           taxIdLabel: recognizedFiscal.taxIdLabel,
           taxIdValue: recognizedFiscal.taxIdValue,
           business,
-          invoices: validInvoices
+          invoices: validInvoices,
+          expenses: validExpenses
         }
       };
     }
@@ -1009,7 +1036,7 @@
     }
 
     // ---- Backup & JSON Schema Validation Component ----
-    function BackupValidator({ business, invoices, onImport }) {
+    function BackupValidator({ business, invoices, expenses, onImport }) {
       const [jsonText, setJsonText] = useState("");
       const [validationResult, setValidationResult] = useState(null);
 
@@ -1019,7 +1046,7 @@
           const result = validateInvoiceMateBackup(parsed);
           setValidationResult(result);
           if (result.valid) {
-            onImport(result.data.business, result.data.invoices);
+            onImport(result.data.business, result.data.invoices, result.data.expenses);
           }
         } catch (err) {
           setValidationResult({
@@ -1040,7 +1067,7 @@
             const result = validateInvoiceMateBackup(parsed);
             setValidationResult(result);
             if (result.valid) {
-              onImport(result.data.business, result.data.invoices);
+              onImport(result.data.business, result.data.invoices, result.data.expenses);
             }
           } catch (err) {
             setValidationResult({ valid: false, errors: ["JSON Parse Error: " + err.message] });
@@ -1057,7 +1084,8 @@
           taxIdLabel: business.taxIdLabel || "NIF",
           taxIdValue: business.taxIdValue || business.vatNo || "",
           business,
-          invoices
+          invoices,
+          expenses: expenses || []
         };
         const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -1068,12 +1096,49 @@
         URL.revokeObjectURL(url);
       };
 
+      const handleFactoryReset = () => {
+        if (window.confirm("Performing a Factory Reset completely purges all local data from your device, including Invoices, Credit Notes, Clients, Inventory Items, Payments, and Tracked Expenses, resetting all dashboard metric counters to 0.00.\n\nAre you sure you want to proceed with a local clean wipe?")) {
+          const resetBusiness = {
+            name: "My Business",
+            countryCode: "PT",
+            taxIdLabel: "NIF",
+            taxIdValue: "",
+            address: "",
+            email: "",
+            phone: "",
+            bankName: "",
+            sortCode: "",
+            accountNo: ""
+          };
+          onImport(resetBusiness, [], []);
+          setValidationResult({
+            valid: true,
+            countryCode: "PT",
+            taxIdLabel: "NIF",
+            taxIdValue: "None",
+            invoicesCount: 0,
+            expensesCount: 0,
+            hasExpensesKey: true,
+            isReset: true
+          });
+        }
+      };
+
       return (
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 max-w-3xl space-y-6">
           <div>
             <h2 class="text-xl font-bold text-slate-900 mb-2">Android & Web Backup Schema Validator</h2>
             <p class="text-sm text-slate-500">
-              Validate and import backups from the InvoiceMate Global Android app. The JSON schema validator strictly verifies <code>countryCode</code>, <code>taxIdLabel</code>, and <code>taxIdValue</code> schemas.
+              Validate and import backups from the InvoiceMate Global Android app. The JSON schema validator strictly verifies <code>countryCode</code>, <code>taxIdLabel</code>, <code>taxIdValue</code>, and <code>expenses</code> schemas.
+            </p>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900">
+            <div class="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
+              <span>⚠️ Data Management & Privacy: Factory Reset</span>
+            </div>
+            <p class="leading-relaxed">
+              Performing a Factory Reset completely purges all local data from your device, including Invoices, Credit Notes, Clients, Inventory Items, Payments, and Tracked Expenses, resetting all dashboard metric counters to 0.00.
             </p>
           </div>
 
@@ -1087,7 +1152,14 @@
               onClick={handleExport}
               class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-2"
             >
-              <span>💾 Export Current Backup JSON</span>
+              <span>💾 Export Full Backup JSON</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleFactoryReset}
+              class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-2"
+            >
+              <span>🗑️ Factory Reset / Clean Wipe</span>
             </button>
           </div>
 
@@ -1099,7 +1171,7 @@
               rows="6"
               value={jsonText}
               onChange={(e) => setJsonText(e.target.value)}
-              placeholder='{"version":"1.5.0","countryCode":"PT","taxIdLabel":"NIF","taxIdValue":"123456789","business":{...},"invoices":[...]}'
+              placeholder='{"version":"1.5.0","countryCode":"PT","taxIdLabel":"NIF","taxIdValue":"123456789","business":{...},"invoices":[...],"expenses":[...]}'
               class="w-full font-mono text-xs border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-800"
             />
             <button
@@ -1120,7 +1192,7 @@
               }`}
             >
               <div class="font-bold flex items-center gap-2 mb-1">
-                <span>{validationResult.valid ? "✓ Schema Validated Successfully!" : "✕ Validation Failed"}</span>
+                <span>{validationResult.isReset ? "✓ Factory Reset Wipe Successful (All Counters 0.00)" : (validationResult.valid ? "✓ Schema Validated Successfully!" : "✕ Validation Failed")}</span>
               </div>
               {validationResult.valid ? (
                 <div class="space-y-1 text-xs text-emerald-800">
@@ -1128,6 +1200,7 @@
                   <p>• Recognized Tax ID Label: <strong>{validationResult.taxIdLabel}</strong></p>
                   <p>• Recognized Tax ID Value: <strong>{validationResult.taxIdValue || "None"}</strong></p>
                   <p>• Invoices Imported: <strong>{validationResult.invoicesCount}</strong></p>
+                  <p>• Tracked Expenses Key: <strong>{validationResult.hasExpensesKey ? "Verified (✓)" : "Present"} ({validationResult.expensesCount} records)</strong></p>
                 </div>
               ) : (
                 <ul class="list-disc list-inside text-xs text-rose-700 space-y-0.5">

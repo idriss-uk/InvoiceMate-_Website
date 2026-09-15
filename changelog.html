@@ -126,7 +126,13 @@
             <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--navy-800); line-height: 1.5;">
               <span style="color: var(--accent-green); font-weight: bold; flex-shrink: 0;">✓</span>
               <div>
-                <strong>JSON Schema Backup Validation:</strong> Web platform import/export validator now fully recognizes <code>countryCode</code>, <code>taxIdLabel</code>, and <code>taxIdValue</code> schemas from Android device backups.
+                <strong>JSON Schema Backup & Expenses Validation:</strong> Web platform import/export validator now fully recognizes <code>countryCode</code>, <code>taxIdLabel</code>, <code>taxIdValue</code>, and <code>expenses</code> schemas from Android device backups, ensuring imported backups or clean wipes match device states identically.
+              </div>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--navy-800); line-height: 1.5;">
+              <span style="color: var(--accent-green); font-weight: bold; flex-shrink: 0;">✓</span>
+              <div>
+                <strong>Data Management & Factory Reset Alignment:</strong> Standardized local purge routines ensuring that performing a Factory Reset completely purges all local data from your device, including Invoices, Credit Notes, Clients, Inventory Items, Payments, and Tracked Expenses, resetting all dashboard metric counters to 0.00.
               </div>
             </li>
           </ul>
