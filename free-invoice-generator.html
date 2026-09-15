@@ -772,6 +772,20 @@
             taxIdLabel: "NIF",
             taxIdValue: form.taxIdValue || form.vatNo || "PT123456789"
           });
+        } else if (country === "US") {
+          setForm({
+            ...form,
+            countryCode: "US",
+            taxIdLabel: "EIN / Tax ID",
+            taxIdValue: form.taxIdValue || form.vatNo || "12-3456789"
+          });
+        } else if (country === "IN") {
+          setForm({
+            ...form,
+            countryCode: "IN",
+            taxIdLabel: "GSTIN",
+            taxIdValue: form.taxIdValue || form.vatNo || "22AAAAA0000A1Z5"
+          });
         } else if (country === "GB") {
           setForm({
             ...form,
@@ -821,6 +835,28 @@
                   }`}
                 >
                   🇵🇹 Portugal (IVA, NIF, EUR)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyCountryPreset("US")}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    form.countryCode === "US"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                >
+                  🇺🇸 USA (EIN, Sales Tax, USD)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyCountryPreset("IN")}
+                  class={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    form.countryCode === "IN"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                  }`}
+                >
+                  🇮🇳 India (GSTIN, GST, INR)
                 </button>
                 <button
                   type="button"
