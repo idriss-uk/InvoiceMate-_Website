@@ -387,120 +387,63 @@
   <!-- ============================================
        PRICING SECTION
        ============================================ -->
-  <section class="pricing section-padding" id="pricing">
+  <section id="pricing" class="pricing-section">
     <div class="container">
-      <div class="pricing-header reveal">
-        <span class="section-label">Simple Pricing</span>
-        <h2 class="section-title">Choose Your Plan</h2>
-        <p class="section-subtitle mx-auto">
-          Start free and scale as your business grows. No hidden fees, no surprises.
-        </p>
+      <div class="text-center mb-5">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <p class="section-subtitle">No monthly subscriptions. Pay once, use forever on Android.</p>
       </div>
 
-     <div class="pricing-grid">
-                <!-- Free Tier -->
-                <div class="pricing-card reveal reveal-delay-1">
-                    <div class="pricing-name">Free</div>
-                    <div class="pricing-description">Perfect for testing and small starter projects.</div>
-                    <div class="pricing-amount">
-                        <span class="pricing-currency">£</span>
-                        <span class="pricing-value">0</span>
-                        <span class="pricing-period">20 Invoices / 28 Days</span>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Up to 20 free invoices or 28 days
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Record client payments & settlements
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Issue credit notes & balance adjustments
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Client ledger & account statements
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Unlimited client profiles
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Multi-currency & tax support
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            100% offline & local data privacy
-                        </li>
-                        <li class="disabled">
-                            <svg class="x-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                            Unlimited invoice creation
-                        </li>
-                        <li class="disabled">
-                            <svg class="x-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                            Premium templates & custom branding
-                        </li>
-                    </ul>
-                    <button class="btn-pricing outline" id="pricing-free-cta">Get Started Free</button>
-                </div>
+      <div class="pricing-grid">
+        <!-- Free Tier Card -->
+        <div class="pricing-card free-card">
+          <div class="card-header">
+            <h3>Free</h3>
+            <p class="card-desc">Perfect for testing and small starter projects.</p>
+            <div class="price-box">
+              <span class="currency">£</span><span class="amount">0</span>
+              <span class="period">/ 20 Invoices / 28 Days</span>
+            </div>
+          </div>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Up to 20 free invoices or 28 days</li>
+            <li><span class="check">✓</span> Record client payments &amp; settlements</li>
+            <li><span class="check">✓</span> Issue credit notes &amp; balance adjustments</li>
+            <li><span class="check">✓</span> Client ledger &amp; account statements</li>
+            <li><span class="check">✓</span> Unlimited client profiles</li>
+            <li><span class="check">✓</span> Multi-currency &amp; tax support</li>
+            <li><span class="check">✓</span> 100% offline &amp; local data privacy</li>
+            <li class="disabled"><span class="cross">✕</span> Unlimited invoice creation</li>
+            <li class="disabled"><span class="cross">✕</span> Premium templates &amp; custom branding</li>
+          </ul>
+          <a href="https://play.google.com/store/apps/details?id=com.invoicemateglobal" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Get Started Free</a>
+        </div>
 
-                <!-- Pro Tier -->
-                <div class="pricing-card featured reveal reveal-delay-2">
-                    <div class="pricing-popular">Best Value</div>
-                    <div class="pricing-name">Pro</div>
-                    <div class="pricing-description">For businesses that need unlimited invoices & branding.</div>
-                    <div class="pricing-amount">
-                        <span class="pricing-currency">£</span>
-                        <span class="pricing-value">14.49</span>
-                    </div>
-                    <div class="pricing-period" style="margin-top: -24px; margin-bottom: 28px;">Pro Tier — Lifetime Access</div>
-                    <ul class="pricing-features">
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            <strong>Unlimited invoice creation</strong>
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Record client payments & settlements
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Issue credit notes & balance adjustments
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Client ledger & PDF account statements
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Custom logo & business branding
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Multilingual client assets
-                        </li>                           <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Premium PDF templates & custom styling
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Direct PDF sharing & print export
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            100% offline & local data privacy
-                        </li>
-                        <li>
-                            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            Priority support
-                        </li>
-                    </ul>
-                    <button class="btn-pricing filled" id="pricing-pro-cta">Upgrade to Pro</button>
-                </div>
-            </div></div>
+        <!-- Pro Tier Card -->
+        <div class="pricing-card pro-card highlighted">
+          <div class="badge">MOST POPULAR — ONE-TIME PURCHASE</div>
+          <div class="card-header">
+            <h3>Pro Tier</h3>
+            <p class="card-desc">For businesses that need unlimited invoices &amp; branding.</p>
+            <div class="price-box">
+              <span class="currency">£</span><span class="amount">14.49</span>
+              <span class="period">Pro Tier — Lifetime Access</span>
+            </div>
+          </div>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> <strong>Unlimited invoice creation</strong></li>
+            <li><span class="check">✓</span> Record client payments &amp; settlements</li>
+            <li><span class="check">✓</span> Issue credit notes &amp; balance adjustments</li>
+            <li><span class="check">✓</span> Client ledger &amp; PDF account statements</li>
+            <li><span class="check">✓</span> Custom logo &amp; business branding</li>
+            <li><span class="check">✓</span> Multilingual client assets</li>
+            <li><span class="check">✓</span> Custom payment due dates (Calendar Picker)</li>
+            <li><span class="check">✓</span> Priority customer support</li>
+          </ul>
+          <a href="https://play.google.com/store/apps/details?id=com.invoicemateglobal" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Upgrade to Pro</a>
+        </div>
+      </div>
+    </div>
   </section>
 <section class="faq section-padding" id="faq">
         <div class="container" style="max-width: 860px; margin: 0 auto; padding: 0 1.5rem;">
