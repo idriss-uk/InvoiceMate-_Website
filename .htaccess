@@ -1,5 +1,1 @@
-# Force correct MIME type for XML sitemaps
-<Files "sitemap.xml">
-    AddType application/xml .xml
-    Header set Content-Type "application/xml; charset=UTF-8"
-</Files>
+Redirect 301 /free-invoice-generator.html https://www.invoicemateglobal.com/
