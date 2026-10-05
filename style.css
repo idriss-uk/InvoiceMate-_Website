@@ -171,7 +171,8 @@ section[id] {
 /* ============================================
    UPDATE BANNER & NAVIGATION
    ============================================ */
-.update-banner {
+.update-banner,
+.announcement-bar {
   position: relative;
   z-index: 1001;
   font-size: 0.875rem;
@@ -179,12 +180,14 @@ section[id] {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.update-banner a {
+.update-banner a,
+.announcement-bar a {
   text-decoration: none;
   transition: opacity var(--transition-fast);
 }
 
-.update-banner a:hover {
+.update-banner a:hover,
+.announcement-bar a:hover {
   text-decoration: underline;
   opacity: 0.9;
 }
