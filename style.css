@@ -169,10 +169,28 @@ section[id] {
 }
 
 /* ============================================
-   NAVIGATION
+   UPDATE BANNER & NAVIGATION
    ============================================ */
+.update-banner {
+  position: relative;
+  z-index: 1001;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.update-banner a {
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.update-banner a:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
 .navbar {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -388,7 +406,7 @@ section[id] {
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
-  padding-top: 120px;
+  padding-top: 60px;
   padding-bottom: 60px;
 }
 
