@@ -34,14 +34,9 @@ function applyVersionConfig() {
   versionTags.forEach(el => el.textContent = `v${APP_RELEASE.version}`);
 
   // 4. Sync What's New Section if present
-  const versionBadge = document.querySelector("#whats-new .version-badge");
+  const versionBadge = document.querySelector("#whats-new .badge, #whats-new .version-badge");
   if (versionBadge) {
-    versionBadge.innerHTML = `<span class="dot"></span> v${APP_RELEASE.version}`;
-  }
-
-  const whatsNewSubtitle = document.querySelector("#whats-new .section-subtitle");
-  if (whatsNewSubtitle) {
-    whatsNewSubtitle.textContent = `Version ${APP_RELEASE.version} — ${APP_RELEASE.title}`;
+    versionBadge.textContent = `Version ${APP_RELEASE.version} Changelog`;
   }
 
   // 5. Sync Play Store CTAs
