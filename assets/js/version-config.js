@@ -1,68 +1,64 @@
-/**
- * InvoiceMate Global — Dynamic Single-Source Versioning
- * Centralized configuration to keep all version badges, announcement banners,
- * hero pills, and CTA links synchronized across the website.
- */
-const APP_VERSION_CONFIG = {
-  version: "v1.4.9",
-  releaseDate: "October 2026",
-  highlights: "Full 6-Language RTL Localization & Native Date Pickers",
-  bannerHtml: '🚀 <strong>InvoiceMate Global v1.4.9 Released!</strong> Experience full 6-language RTL localization &amp; native date pickers.',
+// Central Version Controller for www.invoicemateglobal.com
+const APP_RELEASE = {
+  version: "1.4.9",
+  buildNumber: "47",
+  title: "Full 6-Language RTL Localization & Native Date Pickers",
   playStoreUrl: "https://play.google.com/store/apps/details?id=com.invoicemateglobal"
 };
 
-function applyVersionConfig(config = APP_VERSION_CONFIG) {
-  // 1. Synchronize Top Announcement Banners
-  document.querySelectorAll('.announcement-bar, .update-banner').forEach(el => {
-    const textSpan = el.querySelector('span');
-    if (textSpan) {
-      textSpan.innerHTML = config.bannerHtml;
-    }
-    const storeLink = el.querySelector('a');
-    if (storeLink) {
-      storeLink.href = config.playStoreUrl;
-    }
-  });
+function applyVersionConfig() {
+  // 1. Update Top Banner
+  const topBannerText = document.querySelector(".announcement-bar strong");
+  if (topBannerText) {
+    topBannerText.textContent = `InvoiceMate Global v${APP_RELEASE.version} Released!`;
+  }
+  const topBannerLink = document.querySelector(".announcement-bar a, .update-banner a");
+  if (topBannerLink && APP_RELEASE.playStoreUrl) {
+    topBannerLink.href = APP_RELEASE.playStoreUrl;
+  }
 
-  // 2. Synchronize Hero Feature Pill
-  const heroBadge = document.querySelector('.hero-badge');
+  // 2. Update Hero Badge Text
+  const heroBadge = document.querySelector(".hero-badge");
   if (heroBadge) {
-    const textSpan = heroBadge.querySelector('span:not(.dot)');
+    const textSpan = heroBadge.querySelector("span:not(.dot)");
     if (textSpan) {
-      textSpan.innerHTML = `✨ What's New in ${config.version}: ${config.highlights} &rarr;`;
+      textSpan.textContent = `✨ What's New in v${APP_RELEASE.version}: ${APP_RELEASE.title} →`;
+    } else {
+      heroBadge.innerHTML = `<span class="dot"></span> ✨ What's New in v${APP_RELEASE.version}: ${APP_RELEASE.title} →`;
     }
+    heroBadge.setAttribute("href", "#whats-new");
   }
 
-  // 3. Synchronize "What's New" Section Header & Subtitle
-  const versionBadge = document.querySelector('#whats-new .version-badge');
+  // 3. Sync Footer / Release Modal elements
+  const versionTags = document.querySelectorAll(".app-version-tag, [data-app-version]");
+  versionTags.forEach(el => el.textContent = `v${APP_RELEASE.version}`);
+
+  // 4. Sync What's New Section if present
+  const versionBadge = document.querySelector("#whats-new .version-badge");
   if (versionBadge) {
-    versionBadge.innerHTML = `<span class="dot"></span> ${config.version} • Released ${config.releaseDate}`;
+    versionBadge.innerHTML = `<span class="dot"></span> v${APP_RELEASE.version}`;
   }
 
-  const whatsNewSubtitle = document.querySelector('#whats-new .section-subtitle');
+  const whatsNewSubtitle = document.querySelector("#whats-new .section-subtitle");
   if (whatsNewSubtitle) {
-    whatsNewSubtitle.innerHTML = `Version ${config.version.replace(/^v/, '')} — ${config.highlights} &amp; Payment Tracking`;
+    whatsNewSubtitle.textContent = `Version ${APP_RELEASE.version} — ${APP_RELEASE.title}`;
   }
 
-  // 4. Synchronize CTA Buttons with Version
-  document.querySelectorAll('#whats-new .whats-new-cta a.btn-primary span, [data-version-cta]').forEach(el => {
-    el.textContent = `Download ${config.version} on Google Play`;
-  });
-
-  // 5. Synchronize Any Specific Elements Marked with data-app-version
-  document.querySelectorAll('[data-app-version]').forEach(el => {
-    el.textContent = config.version;
+  // 5. Sync Play Store CTAs
+  document.querySelectorAll("#whats-new .whats-new-cta a.btn-primary span, [data-version-cta]").forEach(el => {
+    el.textContent = `Download v${APP_RELEASE.version} on Google Play`;
   });
 }
 
-// Execute immediately when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => applyVersionConfig());
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", applyVersionConfig);
 } else {
   applyVersionConfig();
 }
 
-// Support Node/CommonJS export for testing environments
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { APP_VERSION_CONFIG, applyVersionConfig };
+// Backward compatibility aliases
+const APP_VERSION_CONFIG = APP_RELEASE;
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { APP_RELEASE, APP_VERSION_CONFIG, applyVersionConfig };
 }
